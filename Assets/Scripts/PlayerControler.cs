@@ -243,7 +243,7 @@ public class PlayerControler : MonoBehaviour {
                     }
                     _GroundNormal = _Hit.normal;
                 }
-                if (!Jumping) transform.position = _Hit.point + transform.up * Height;
+                if (!Jumping) RB.MovePosition(_Hit.point + _GroundNormal * Height);
             }
             else
             {
@@ -313,7 +313,7 @@ public class PlayerControler : MonoBehaviour {
                     }
                     _GroundNormal = _Hit.normal;
                 }
-                if (!Jumping) transform.position = _Hit.point + transform.up * Height;
+                if (!Jumping) RB.MovePosition(_Hit.point + _GroundNormal * Height);
             }
             else
             {
@@ -334,8 +334,9 @@ public class PlayerControler : MonoBehaviour {
             }
         }
 
-        //Rotate towards the forward of movement
+        
         if (_Grounded){
+            //Rotate towards the forward of movement
             if (GroundVelocity != Vector3.zero)
             {
                 Quaternion Q2 = Quaternion.LookRotation(GroundVelocity, _GroundNormal);
@@ -343,6 +344,7 @@ public class PlayerControler : MonoBehaviour {
             }
             if (!Jumping)
             {
+                //Process Animation
                 if (GroundVelocity == Vector3.zero)
                 {
                     _AnimationBody.GetComponent<Animator>().Play("IdleLoop");
