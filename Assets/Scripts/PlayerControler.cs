@@ -619,4 +619,4 @@ public static class Tools
 
 //Thank you Murasaki for all the advice
 
-//Input code is heavily bassed on the Hedgephysics engine's input code.
+//Input code is heavily bassed on the Hedgephysics engine's input code
