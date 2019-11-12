@@ -48,9 +48,9 @@ public class MouseOrbitImproved : MonoBehaviour {
             y += Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
  
             y = ClampAngle(y, yMinLimit, yMaxLimit);
- 
-            Quaternion rotation = Quaternion.Euler(y, x, 0); //Quaternion.Lerp(transform.rotation, target.rotation, 1 * Time.deltaTime) || Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up)
 
+            Quaternion rotation = Quaternion.Lerp(transform.rotation, Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up) * Quaternion.Euler(y, x, 0), 50f*Time.deltaTime); //Quaternion.Lerp(transform.rotation, target.rotation, 1 * Time.deltaTime) || Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up)
+            //Quaternion rotation =  Quaternion.Euler(y, x, 0);
             distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel")*5, distanceMin, distanceMax);
  
             RaycastHit hit;
