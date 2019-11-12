@@ -75,3 +75,4 @@ public class MouseOrbitImproved : MonoBehaviour {
         return Mathf.Clamp(angle, min, max);
     }
 }
+

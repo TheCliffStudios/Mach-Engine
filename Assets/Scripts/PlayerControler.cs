@@ -615,3 +615,8 @@ public static class Tools
         return GR;
     }
 }
+//Credits
+
+//Thank you Murasaki for all the advice
+
+//Input code is heavily bassed on the Hedgephysics engine's input code.
