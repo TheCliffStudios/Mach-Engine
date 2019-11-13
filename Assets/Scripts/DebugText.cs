@@ -6,7 +6,7 @@ public class DebugText : MonoBehaviour
 {
 
     public static DebugText _DebugText;
-    TMPro.TextMeshProUGUI _Text;
+    public TMPro.TextMeshProUGUI _Text;
 
     public Vector3 _Velocity;
     public Vector3 _NormalVelocity;
@@ -23,7 +23,7 @@ public class DebugText : MonoBehaviour
             Destroy(this);
         }
 
-        _Text = GetComponent<TMPro.TextMeshProUGUI>();
+        //_Text = GetComponent<TMPro.TextMeshProUGUI>();
     }
 
     // Update is called once per frame

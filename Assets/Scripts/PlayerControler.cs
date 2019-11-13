@@ -85,7 +85,7 @@ public class PlayerControler : MonoBehaviour {
     public float AirAcell = 1.2f;
     public float Decel = 0.4f;
     public float TurningSpeed = 2.5f;
-
+    public float _VelocityGroundAngle = 40f;
     public bool UtopiaTurning = false;
     public bool _Grounded;
 
@@ -257,7 +257,7 @@ public class PlayerControler : MonoBehaviour {
                     }
                     _GroundNormal = _Hit.normal;
                 }
-                if (!Jumping && _Grounded && Vector3.Angle(_GroundNormal, Velocity) > 70) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; }
+                if (!Jumping && _Grounded && Vector3.Angle(_GroundNormal, Velocity) > _VelocityGroundAngle) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; }
                 else { _Grounded = false; }//|| Vector3.Angle(_GroundNormal, Velocity) > 90
             }
             else
@@ -335,7 +335,7 @@ public class PlayerControler : MonoBehaviour {
                     }
                     _GroundNormal = _Hit.normal;
                 }
-                if (!Jumping && _Grounded && Vector3.Angle(_GroundNormal, Velocity) > 70) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; } //|| Vector3.Angle(_GroundNormal, Velocity) > 90
+                if (!Jumping && _Grounded && Vector3.Angle(_GroundNormal, Velocity) > _VelocityGroundAngle) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; } //|| Vector3.Angle(_GroundNormal, Velocity) > 90
                 else { _Grounded = false; }
             }
             else
@@ -492,129 +492,9 @@ public class PlayerControler : MonoBehaviour {
     
 }
 
-public class Trans
-{
 
-    public Vector3 position;
-    public Quaternion rotation;
-    public Vector3 localScale;
-    public Vector3 Up;
-    public Vector3 Forward;
 
-    public Trans(Vector3 newPosition, Quaternion newRotation, Vector3 newLocalScale)
-    {
-        position = newPosition;
-        rotation = newRotation;
-        localScale = newLocalScale;
-        
-    }
 
-    public Trans()
-    {
-        position = Vector3.zero;
-        rotation = Quaternion.identity;
-        localScale = Vector3.one;
-    }
-
-    public Trans(Transform transform)
-    {
-        copyFrom(transform);
-    }
-
-    public void copyFrom(Transform transform)
-    {
-        position = transform.position;
-        rotation = transform.rotation;
-        localScale = transform.localScale;
-        Up = transform.up;
-        Forward = transform.forward;
-    }
-
-    
-
-}
-
-public static class Tools
-{
-
-    public struct GroundedRaycastOut
-    {
-        public Vector3 forward;
-        public Vector3 up;
-        public List<Vector3> Points;
-
-    }
-    public static GroundedRaycastOut GroundedRaycast(Vector3 position, Vector3 forward, Vector3 up, float Distance, float MaximumAngle)
-    {
-
-        RaycastHit _Hit;
-
-        GroundedRaycastOut GR = new GroundedRaycastOut();
-        GR.Points = new List<Vector3>();
-        GR.Points.Add(position);
-        GR.up = up;
-        GR.forward = forward;
-        Vector3 lastPosition = position;
-        while (Distance > 0)
-        {
-
-            float ThisDistance = Mathf.Clamp(0.1f, 0f, Distance);
-            Distance = Distance - ThisDistance;
-
-            if (Physics.Raycast(lastPosition, GR.forward, out _Hit, ThisDistance))
-            {
-
-                lastPosition = _Hit.point + GR.forward * -0.1f;
-                GR.Points.Add(lastPosition);
-                //Distance = Distance + 0.05f;
-
-                if (Vector3.Angle(GR.up, _Hit.normal) > MaximumAngle) return GR;
-
-                GR.forward = Quaternion.FromToRotation(GR.up, _Hit.normal) * GR.forward;
-                GR.up = _Hit.normal;
-
-            }
-            else
-            {
-                lastPosition = lastPosition + GR.forward * ThisDistance;
-                GR.Points.Add(lastPosition);
-
-                if (Physics.Raycast(lastPosition, -GR.up, out _Hit, 1f))
-                {
-                    GR.forward = Quaternion.FromToRotation(GR.up, _Hit.normal) * GR.forward;
-                    GR.up = _Hit.normal;
-
-                    if (Vector3.Angle(GR.up, _Hit.normal) > MaximumAngle) return GR;
-                }
-                else
-                {
-                    if (Physics.Raycast(lastPosition, GR.forward, out _Hit, Distance))
-                    {
-                        Distance = Distance - Vector3.Distance(lastPosition, _Hit.point);
-                        lastPosition = _Hit.point + GR.forward * -0.1f;
-                        GR.Points.Add(lastPosition);
-                        //Distance = Distance + 0.05f;
-                        if (Vector3.Angle(GR.up, _Hit.normal) > MaximumAngle) return GR;
-
-                        GR.forward = Quaternion.FromToRotation(GR.up, _Hit.normal) * GR.forward;
-                        GR.up = _Hit.normal;
-                    }
-                    else
-                    {
-                        lastPosition = lastPosition + GR.forward * Distance;
-                        Distance = 0f;
-                        GR.Points.Add(lastPosition);
-                    }
-
-                }
-
-            }
-
-        }
-
-        return GR;
-    }
-}
 //Credits
 
 //Thank you Murasaki for all the advice
