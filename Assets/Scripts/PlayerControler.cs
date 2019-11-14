@@ -201,61 +201,77 @@ public class PlayerControler : MonoBehaviour {
 
     void GeneralPhysics()
     {
+        float lerp = 0.1f;
         RaycastHit _Hit;
         if (_Grounded)
         {
             Debug.DrawRay(transform.position + transform.up * 0.5f, (-transform.up) * Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed), Color.blue, 0.001f);
             if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.up, out _Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude/MaximumSpeed)))
             {
-            	//AirVelocity = Vector3.zero;
+                Vector3 Normal = Vector3.zero;
+                
+                for (float X = -0.1f; X < 0.1f; X += 0.1f)
+                {
+                    for (float Y = -0.1f; Y < 0.1f; Y += 0.1f)
+                    {
+                        Vector3 XY = transform.TransformDirection(new Vector3(X, Y, 0));
+                        RaycastHit Hit = new RaycastHit();
+                        if (Physics.Raycast(transform.position + XY + transform.up * 0.5f, -transform.up, out Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed)))
+                        {
+                            Normal += Hit.normal;
+                        }
+                    }
+                }
+                Normal = Normal.normalized;
+                //AirVelocity = Vector3.zero;
                 _Grounded = true;
                 //transform.position = _Hit.point + _Hit.normal * Height;
                 if (GroundVelocity == Vector3.zero)
                 {
-                    if (Vector3.Angle(Vector3.up, _Hit.normal) > _MaxGroundStandingAngle)
+                    if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle)
                     {
                         Debug.Log("Higher");
                         Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
-                        Vector3 F2 = Vector3.Cross(_Hit.normal, -Vector3.Cross(_Hit.normal, transform.forward));
+                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
 
                         Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
-                        Quaternion Q2 = Quaternion.LookRotation(F2, _Hit.normal);
+                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
 
                         Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.75f);
-                        if (Vector3.Angle(Vector3.up, _Hit.normal) > _MaxGroundStandingAngle * 0.9f && GroundVelocity.magnitude < MaximumSpeed / 3)
+                        if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle * 0.9f && GroundVelocity.magnitude < MaximumSpeed / 3)
                         {
-                            Velocity += _Hit.normal * 3;
+                            Velocity += Normal * 3;
                             _Grounded = false;
                         }
                     }
                     else
                     {
                         Debug.Log("Lower"); 
-                        Vector3 F2 = Vector3.Cross(_Hit.normal, -Vector3.Cross(_Hit.normal, transform.forward));
-                        Quaternion Q2 = Quaternion.LookRotation(F2, _Hit.normal);
+                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
+                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
                         Rotate(Q2, 0.75f);
                     }
-                    _GroundNormal = _Hit.normal;
+                    _GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
                 }
                 else
                 {
-                    if (Vector3.Angle(Vector3.up, _Hit.normal) > _MaxGroundStandingAngle)
+                    if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle)
                     {
                         Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
-                        Vector3 F2 = Vector3.Cross(_Hit.normal, -Vector3.Cross(_Hit.normal, transform.forward));
+                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
 
                         Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
-                        Quaternion Q2 = Quaternion.LookRotation(F2, _Hit.normal);
+                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
 
                         Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.5f);
                     }
                     else
                     {
-                        Vector3 F2 = Vector3.Cross(_Hit.normal, -Vector3.Cross(_Hit.normal, transform.forward));
-                        Quaternion Q2 = Quaternion.LookRotation(F2, _Hit.normal);
+                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
+                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
                         Rotate(Q2, 0.75f);
                     }
-                    _GroundNormal = _Hit.normal;
+                    _GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
                 }
                 if (!Jumping && _Grounded && Vector3.Angle(_GroundNormal, Velocity) > _VelocityGroundAngle) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; }
                 else { _Grounded = false; }//|| Vector3.Angle(_GroundNormal, Velocity) > 90
@@ -288,52 +304,66 @@ public class PlayerControler : MonoBehaviour {
             	//AirVelocity = Vector3.zero;
                 _Grounded = true;
                 //transform.position = _Hit.point + _Hit.normal * Height;
+                Vector3 Normal = Vector3.zero;
 
+                for (float X = -0.1f; X < 0.1f; X += 0.1f)
+                {
+                    for (float Y = -0.1f; Y < 0.1f; Y += 0.1f)
+                    {
+                        Vector3 XY = transform.TransformDirection(new Vector3(X, Y, 0));
+                        RaycastHit Hit = new RaycastHit();
+                        if (Physics.Raycast(transform.position + XY + transform.up * 0.5f, -transform.up, out Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed)))
+                        {
+                            Normal += Hit.normal;
+                        }
+                    }
+                }
+                Normal = Normal.normalized;
                 if (GroundVelocity == Vector3.zero)
                 {
-                    if (Vector3.Angle(Vector3.up, _Hit.normal ) > _MaxGroundStandingAngle) { 
+                    if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle) { 
                         Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
-                        Vector3 F2 = Vector3.Cross(_Hit.normal, -Vector3.Cross(_Hit.normal, transform.forward));
+                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
 
                         Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
-                        Quaternion Q2 = Quaternion.LookRotation(F2, _Hit.normal);
+                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
 
                         Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.75f);
 
-                        if (Vector3.Angle(Vector3.up, _Hit.normal) > _MaxGroundStandingAngle * 0.9f && GroundVelocity.magnitude < MaximumSpeed / 3)
+                        if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle * 0.9f && GroundVelocity.magnitude < MaximumSpeed / 3)
                         {
-                            Velocity += _Hit.normal * 3;
+                            Velocity += Normal * 3;
                             _Grounded = false;
                         }
                     }
                     else
                     {
-                        Vector3 F2 = Vector3.Cross(_Hit.normal, -Vector3.Cross(_Hit.normal, transform.forward));
-                        Quaternion Q2 = Quaternion.LookRotation(F2, _Hit.normal);
+                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
+                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
                         Rotate(Q2, 0.75f);
 
                     }
-                    _GroundNormal = _Hit.normal;
+                    _GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
                 }
                 else
                 {
-                    if (Vector3.Angle(Vector3.up, _Hit.normal) > _MaxGroundStandingAngle)
+                    if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle)
                     {
                         Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
-                        Vector3 F2 = Vector3.Cross(_Hit.normal, -Vector3.Cross(_Hit.normal, transform.forward));
+                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
 
                         Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
-                        Quaternion Q2 = Quaternion.LookRotation(F2, _Hit.normal);
+                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
 
                         Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.75f);
                     }
                     else
                     {
-                        Vector3 F2 = Vector3.Cross(_Hit.normal, -Vector3.Cross(_Hit.normal, transform.forward));
-                        Quaternion Q2 = Quaternion.LookRotation(F2, _Hit.normal);
+                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
+                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
                         Rotate(Q2, 0.75f);
                     }
-                    _GroundNormal = _Hit.normal;
+                    _GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
                 }
                 if (!Jumping && _Grounded && Vector3.Angle(_GroundNormal, Velocity) > _VelocityGroundAngle) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; } //|| Vector3.Angle(_GroundNormal, Velocity) > 90
                 else { _Grounded = false; }
@@ -489,7 +519,12 @@ public class PlayerControler : MonoBehaviour {
 
         return DF;
     }
-    
+
+    private void LateUpdate()
+    {
+        _AnimationBody.transform.position = transform.position;
+        _AnimationBody.transform.rotation = Quaternion.Lerp(_AnimationBody.transform.rotation, transform.rotation * Quaternion.Euler(90, 0, 0), 0.9f);
+    }
 }
 
 
