@@ -78,6 +78,7 @@ public class PlayerControler : MonoBehaviour {
     public float GroundRaycastLengthMax = 2f;
 
     public float Height = 0.25f;
+    public float WallSideDistance = 0.01f;
 
     public float ControlSpeed = 20;
     public float MaximumSpeed = 40;
@@ -88,7 +89,7 @@ public class PlayerControler : MonoBehaviour {
     public float _VelocityGroundAngle = 40f;
     public bool UtopiaTurning = false;
     public bool _Grounded;
-
+   
     bool Jumping = false;
     Rigidbody RB;
 
@@ -96,15 +97,15 @@ public class PlayerControler : MonoBehaviour {
 
     public float _MaxGroundStandingAngle = 30;
 
+    public Vector2 WallStickAngleRange = new Vector2(50, 130);
+
     public enum PlayerState
     {
-        Grounded,
-        OnWall,
-        InAir,
-        WallRun
+        Normal,
+        WallSlide,
     }
 
-    public PlayerState _PlayerState = PlayerState.Grounded;
+    public PlayerState _PlayerState = PlayerState.Normal;
 
     private void Start()
     {
@@ -201,105 +202,155 @@ public class PlayerControler : MonoBehaviour {
 
     void GeneralPhysics()
     {
+        PlayerState StartState = _PlayerState;
         float lerp = 0.1f;
         RaycastHit _Hit;
+        Vector3 RayDirection = Vector3.zero;
+
+        if (_PlayerState == PlayerState.Normal)
+        {
+            RayDirection = -transform.up;
+        }
+        else
+        {
+            RayDirection = transform.forward;
+        }
+
+        float RayRange = 0;
+
         if (_Grounded)
         {
-            Debug.DrawRay(transform.position + transform.up * 0.5f, (-transform.up) * Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed), Color.blue, 0.001f);
-            if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.up, out _Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude/MaximumSpeed)))
+            RayRange = Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed);
+            if (_PlayerState == PlayerState.WallSlide)
             {
-                Vector3 Normal = Vector3.zero;
-                
-                for (float X = -0.1f; X < 0.1f; X += 0.1f)
-                {
-                    for (float Y = -0.1f; Y < 0.1f; Y += 0.1f)
-                    {
-                        Vector3 XY = transform.TransformDirection(new Vector3(X, Y, 0));
-                        RaycastHit Hit = new RaycastHit();
-                        if (Physics.Raycast(transform.position + XY + transform.up * 0.5f, -transform.up, out Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed)))
-                        {
-                            Normal += Hit.normal;
-                        }
-                    }
-                }
-                Normal = Normal.normalized;
-                //AirVelocity = Vector3.zero;
-                _Grounded = true;
-                //transform.position = _Hit.point + _Hit.normal * Height;
-                if (GroundVelocity == Vector3.zero)
-                {
-                    if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle)
-                    {
-                        Debug.Log("Higher");
-                        Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
-                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
-
-                        Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
-                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
-
-                        Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.75f);
-                        if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle * 0.9f && GroundVelocity.magnitude < MaximumSpeed / 3)
-                        {
-                            Velocity += Normal * 3;
-                            _Grounded = false;
-                        }
-                    }
-                    else
-                    {
-                        Debug.Log("Lower"); 
-                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
-                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
-                        Rotate(Q2, 0.75f);
-                    }
-                    _GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
-                }
-                else
-                {
-                    if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle)
-                    {
-                        Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
-                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
-
-                        Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
-                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
-
-                        Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.5f);
-                    }
-                    else
-                    {
-                        Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
-                        Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
-                        Rotate(Q2, 0.75f);
-                    }
-                    _GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
-                }
-                if (!Jumping && _Grounded && Vector3.Angle(_GroundNormal, Velocity) > _VelocityGroundAngle) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; }
-                else { _Grounded = false; }//|| Vector3.Angle(_GroundNormal, Velocity) > 90
-            }
-            else
-            {
-                Velocity = Velocity + (_Gravity * Time.fixedDeltaTime);
-                _Grounded = false;
-                Vector3 F1;
-                if (GroundVelocity == Vector3.zero)
-                {
-                    F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
-                }
-                else
-                {
-                    F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, GroundVelocity));
-                }
-                
-                    
-                Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
-                Rotate(Q1, 0f);
-                _GroundNormal = Vector3.up;
+                RayRange += 0.5f;
             }
         }
         else
         {
+            RayRange = GroundRaycastLengthMin;
+        }
+        
+        Debug.DrawRay(transform.position + -RayDirection * 0.5f, (RayDirection) * RayRange, Color.blue, 0.01f);
+        if (Physics.Raycast(transform.position + -RayDirection * 0.5f, RayDirection, out _Hit, RayRange))
+        {
+            Vector3 Normal = Vector3.zero;
+
+            for (float X = -0.1f; X < 0.1f; X += 0.1f)
+            {
+                for (float Y = -0.1f; Y < 0.1f; Y += 0.1f)
+                {
+                    Vector3 XY = transform.TransformDirection(new Vector3(X, Y, 0));
+                    RaycastHit Hit = new RaycastHit();
+                    if (Physics.Raycast(transform.position + XY + -RayDirection * 0.5f, RayDirection, out Hit, RayRange))
+                    {
+                        Normal += Hit.normal;
+
+                    }
+                }
+            }
+            Normal = Normal.normalized;
+            //AirVelocity = Vector3.zero;
+            _Grounded = true;
+            //transform.position = _Hit.point + _Hit.normal * Height;
+            if (Vector3.Angle(Vector3.up, _Hit.normal) > WallStickAngleRange.x && Vector3.Angle(Vector3.up, _Hit.normal) < WallStickAngleRange.y && GroundVelocity.magnitude < MaximumSpeed / 10 && _PlayerState == PlayerState.Normal)
+            {
+                _PlayerState = PlayerState.WallSlide;
+
+                Velocity = Vector3.zero;
+                _Grounded = true;
+                _GroundNormal = _Hit.normal;
+                Vector3 Up = Vector3.Cross(_Hit.normal, -Vector3.Cross(_Hit.normal, Vector3.up));
+                Quaternion Q = Quaternion.LookRotation(-_Hit.normal, Up);
+                Rotate(Q, 0);
+                RB.isKinematic = true;
+                RB.MovePosition(_Hit.point + _GroundNormal * WallSideDistance);
+            }
+            else if ( _PlayerState == PlayerState.Normal)
+            {
+                _PlayerState = PlayerState.Normal;
+                RB.isKinematic = false;
+            }
+            else
+            {
+                
+            }
+            Debug.Log(Vector3.Angle(Vector3.up, Normal));
+
+
+            if (GroundVelocity == Vector3.zero)
+            {
+                if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle && _PlayerState == PlayerState.Normal)
+                {
+                    Debug.Log("Higher");
+                    Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
+                    Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
+
+                    Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
+                    Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
+
+                    Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.75f);
+
+                }
+                else if ( _PlayerState == PlayerState.Normal)
+                {
+                    Debug.Log("Lower");
+                    Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
+                    Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
+                    Rotate(Q2, 0.75f);
+                }
+                _GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
+            }
+            else
+            {
+                if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle && _PlayerState == PlayerState.Normal)
+                {
+                    Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
+                    Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
+
+                    Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
+                    Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
+
+                    Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.5f);
+                    
+                }
+                else if ( _PlayerState == PlayerState.Normal)
+                {
+                    Vector3 F2 = Vector3.Cross(Normal, -Vector3.Cross(Normal, transform.forward));
+                    Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
+                    Rotate(Q2, 0.75f);
+                }
+                _GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
+            }
+            if (!Jumping && _Grounded && Vector3.Angle(_GroundNormal, Velocity) > _VelocityGroundAngle && _PlayerState == PlayerState.Normal) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; }
+            else if ( _PlayerState == PlayerState.Normal) { _Grounded = false; }//|| Vector3.Angle(_GroundNormal, Velocity) > 90
+        }
+        else
+        {
+            Velocity = Velocity + (_Gravity * Time.fixedDeltaTime);
+            _Grounded = false;
+            RB.isKinematic = false;
+            _PlayerState = PlayerState.Normal;
+            Vector3 F1;
+            if (GroundVelocity == Vector3.zero)
+            {
+                F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
+            }
+            else
+            {
+                F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, GroundVelocity));
+            }
+
+
+            Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
+            Rotate(Q1, 0f);
+            _GroundNormal = Vector3.up;
+        }
+        
+        /*else
+        {
             Debug.DrawRay(transform.position + transform.up * 0.5f, (-transform.up) * GroundRaycastLengthMin, Color.blue, 0.001f);
-            if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.up, out _Hit, GroundRaycastLengthMin))
+            if (Physics.Raycast(transform.position + -RayDirection * 0.5f, RayDirection, out _Hit, GroundRaycastLengthMin))
             {
             	//AirVelocity = Vector3.zero;
                 _Grounded = true;
@@ -312,7 +363,7 @@ public class PlayerControler : MonoBehaviour {
                     {
                         Vector3 XY = transform.TransformDirection(new Vector3(X, Y, 0));
                         RaycastHit Hit = new RaycastHit();
-                        if (Physics.Raycast(transform.position + XY + transform.up * 0.5f, -transform.up, out Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed)))
+                        if (Physics.Raycast(transform.position + XY + -RayDirection * 0.5f, RayDirection, out Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed)))
                         {
                             Normal += Hit.normal;
                         }
@@ -330,11 +381,19 @@ public class PlayerControler : MonoBehaviour {
 
                         Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.75f);
 
-                        if (Vector3.Angle(Vector3.up, Normal) > _MaxGroundStandingAngle * 0.9f && GroundVelocity.magnitude < MaximumSpeed / 3)
+                        if (Vector3.Angle(Vector3.up, Normal) > WallStickAngleRange.x && Vector3.Angle(Vector3.up, Normal) < WallStickAngleRange.y && GroundVelocity.magnitude < MaximumSpeed / 10)
                         {
-                            Velocity += Normal * 3;
-                            _Grounded = false;
+                            _PlayerState = PlayerState.WallSlide;
+
+                            Velocity = Vector3.zero;
+                            _Grounded = true;
+
                         }
+                        else
+                        {
+                            _PlayerState = PlayerState.Normal;
+                        }
+                        Debug.Log(Vector3.Angle(Vector3.up, Normal));
                     }
                     else
                     {
@@ -356,6 +415,19 @@ public class PlayerControler : MonoBehaviour {
                         Quaternion Q2 = Quaternion.LookRotation(F2, Normal);
 
                         Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.75f);
+                        if (Vector3.Angle(Vector3.up, Normal) > WallStickAngleRange.x && Vector3.Angle(Vector3.up, Normal) < WallStickAngleRange.y && GroundVelocity.magnitude < MaximumSpeed / 10)
+                        {
+                            _PlayerState = PlayerState.WallSlide;
+
+                            Velocity = Vector3.zero;
+                            _Grounded = true;
+
+                        }
+                        else
+                        {
+                            _PlayerState = PlayerState.Normal;
+                        }
+                        Debug.Log(Vector3.Angle(Vector3.up, Normal));
                     }
                     else
                     {
@@ -385,8 +457,12 @@ public class PlayerControler : MonoBehaviour {
                 Rotate(Q1, 0f);
                 _GroundNormal = Vector3.up;
             }
-        }
+        }*/
 
+        if (!_Grounded)
+        {
+            _PlayerState = PlayerState.Normal;
+        }
         
         if (_Grounded){
             //Rotate towards the forward of movement
@@ -395,7 +471,7 @@ public class PlayerControler : MonoBehaviour {
                 Quaternion Q2 = Quaternion.LookRotation(GroundVelocity, _GroundNormal);
                 Rotate(Q2, 0f);
             }
-            if (!Jumping)
+            if (!Jumping && _PlayerState == PlayerState.Normal)
             {
                 //Process Animation
                 if (GroundVelocity == Vector3.zero)
@@ -415,76 +491,86 @@ public class PlayerControler : MonoBehaviour {
             V.y = -20;
             Velocity = V;
         }
-        Debug.DrawRay(transform.position, Vector3.Cross(_GroundNormal, Vector3.Cross(_CameraTransformDuplicate.Up, _CameraTransformDuplicate.Forward)).normalized, Color.red, 20);
-        Vector3 GV = GroundVelocity;
-        if (_RawInput == Vector3.zero)
+        if (_PlayerState != PlayerState.WallSlide)
         {
-            if (_Grounded)
+            Debug.DrawRay(transform.position, Vector3.Cross(_GroundNormal, Vector3.Cross(_CameraTransformDuplicate.Up, _CameraTransformDuplicate.Forward)).normalized, Color.red, 20);
+            Vector3 GV = GroundVelocity;
+            if (_RawInput == Vector3.zero)
             {
-                float Mag = GV.magnitude;
-                Mag = Mathf.Clamp(Mag - (Decel * Time.fixedDeltaTime), 0, MaximumSpeed);
-                if (Mag < 0.05) Mag = 0;
-                GV = GV.normalized * Mag;
-                
-            }
-
-            
-        }
-        else
-        {
-            Vector3 Input = _RawInput;
-            if (_Grounded)
-            {
-                
-                Input = Quaternion.FromToRotation(Vector3.forward, Vector3.Cross(_GroundNormal, -Vector3.Cross(_CameraTransformDuplicate.Up, _CameraTransformDuplicate.Forward))) * Input;
-                Debug.Log(Input);
-                if (GV.magnitude < ControlSpeed)
+                if (_Grounded)
                 {
                     float Mag = GV.magnitude;
-                    GV = GV + (Input.normalized * Acell * Time.fixedDeltaTime);
-                    if (GV.magnitude > ControlSpeed)
-                    {
-                        GV = GV.normalized * ControlSpeed;
-                    }
-                    Mag = Mathf.Clamp(GV.magnitude, Mag, MaximumSpeed);
-                    GV = Vector3.Lerp(GV.normalized, Input.normalized, Time.fixedDeltaTime * TurningSpeed) * Mag;
-                }
-                else
-                {
-                    float Mag = GV.magnitude;
+                    Mag = Mathf.Clamp(Mag - (Decel * Time.fixedDeltaTime), 0, MaximumSpeed);
+                    if (Mag < 0.05) Mag = 0;
+                    GV = GV.normalized * Mag;
 
-                    GV = Vector3.Lerp(GV.normalized, Input.normalized, Time.fixedDeltaTime * TurningSpeed) * Mag;
                 }
-                if (GV.magnitude > MaximumSpeed)
-                {
-                    GV = GV.normalized * MaximumSpeed;
-                }
+
+
             }
             else
             {
-                Input = Quaternion.FromToRotation(Vector3.right, Vector3.Cross(_GroundNormal, _CameraTransformDuplicate.Forward)) * Input;
-                if (GV.magnitude < ControlSpeed)
+                Vector3 Input = _RawInput;
+                if (_Grounded)
                 {
-                    GV = GV + (Input.normalized * AirAcell * Time.fixedDeltaTime);
-                    if (GV.magnitude > ControlSpeed)
+
+                    Input = Quaternion.FromToRotation(Vector3.forward, Vector3.Cross(_GroundNormal, -Vector3.Cross(_CameraTransformDuplicate.Up, _CameraTransformDuplicate.Forward))) * Input;
+                    Debug.Log(Input);
+                    if (GV.magnitude < ControlSpeed)
                     {
-                        GV = GV.normalized * ControlSpeed;
+                        float Mag = GV.magnitude;
+                        GV = GV + (Input.normalized * Acell * Time.fixedDeltaTime);
+                        if (GV.magnitude > ControlSpeed)
+                        {
+                            GV = GV.normalized * ControlSpeed;
+                        }
+                        Mag = Mathf.Clamp(GV.magnitude, Mag, MaximumSpeed);
+                        GV = Vector3.Lerp(GV.normalized, Input.normalized, Time.fixedDeltaTime * TurningSpeed) * Mag;
+                    }
+                    else
+                    {
+                        float Mag = GV.magnitude;
+
+                        GV = Vector3.Lerp(GV.normalized, Input.normalized, Time.fixedDeltaTime * TurningSpeed) * Mag;
+                    }
+                    if (GV.magnitude > MaximumSpeed)
+                    {
+                        GV = GV.normalized * MaximumSpeed;
                     }
                 }
-                if (GV.magnitude > MaximumSpeed)
+                else
                 {
-                    GV = GV.normalized * MaximumSpeed;
+                    Input = Quaternion.FromToRotation(Vector3.right, Vector3.Cross(_GroundNormal, _CameraTransformDuplicate.Forward)) * Input;
+                    if (GV.magnitude < ControlSpeed)
+                    {
+                        GV = GV + (Input.normalized * AirAcell * Time.fixedDeltaTime);
+                        if (GV.magnitude > ControlSpeed)
+                        {
+                            GV = GV.normalized * ControlSpeed;
+                        }
+                    }
+                    if (GV.magnitude > MaximumSpeed)
+                    {
+                        GV = GV.normalized * MaximumSpeed;
+                    }
                 }
             }
+            
+            GroundVelocity = GV;
         }
-        float HillToSpeedCurve = HillToSpeed.Evaluate(GV.magnitude/MaximumSpeed);
-        GroundVelocity = GV;
-        if (transform.forward.y > 0.2f){
-        	float Z = Mathf.Clamp(LocalGroundVelocity.z - (HillToSpeedCurve * Time.fixedDeltaTime), 0, Mathf.Infinity);
-            LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
-        }else if (transform.forward.y < -0.2f){
-            float Z = LocalGroundVelocity.z + (HillToSpeedCurve * Time.fixedDeltaTime);
-            LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
+        float HillToSpeedCurve = HillToSpeed.Evaluate(GroundVelocity.magnitude / MaximumSpeed);
+        if (_PlayerState != PlayerState.WallSlide)
+        {
+            if (transform.forward.y > 0.2f)
+            {
+                float Z = Mathf.Clamp(LocalGroundVelocity.z - (HillToSpeedCurve * Time.fixedDeltaTime), 0, Mathf.Infinity);
+                LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
+            }
+            else if (transform.forward.y < -0.2f)
+            {
+                float Z = LocalGroundVelocity.z + (HillToSpeedCurve * Time.fixedDeltaTime);
+                LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
+            }
         }
 
         
@@ -498,6 +584,14 @@ public class PlayerControler : MonoBehaviour {
             if (Physics.Raycast(NextPoint, -transform.up, out _Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed)))
             {
                Velocity += DownForce(_Hit)*Time.fixedDeltaTime;
+            }
+        }
+
+        if (StartState != _PlayerState)
+        {
+            if (_PlayerState == PlayerState.WallSlide)
+            {
+                _AnimationBody.GetComponent<Animator>().Play("WallStickStart");
             }
         }
     }
