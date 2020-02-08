@@ -6,7 +6,52 @@ ModelImporter:
   - first:
       74: 6942438972965240097
     second: AirBoost
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sonic_gm_body
+    second: {fileID: 2100000, guid: 8f67fdc0d8dd98e4ca7e9e01506a2ced, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sonic_gm_cloth
+    second: {fileID: 2100000, guid: 22fc94a915cce034c909c323c5eb385f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sonic_gm_eyeL
+    second: {fileID: 2100000, guid: b017858f59c0fa6458f796effa337619, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sonic_gm_eyeR
+    second: {fileID: 2100000, guid: 7cb9dd34c09b2c14ca9426f39c5049ca, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sonic_gm_mouth
+    second: {fileID: 2100000, guid: 7908fbcb62f940f4590ba5e9045abe2a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sonic_gm_nose
+    second: {fileID: 2100000, guid: bfef23ea311a2064f93a2af560dcc321, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sonic_gm_shoes_belt
+    second: {fileID: 2100000, guid: 3c458384cd3397241b9a88d1ae0436f8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sonic_gm_shoes_red
+    second: {fileID: 2100000, guid: 9d8ad8817ef66eb4babda496ca429961, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sonic_gm_shoes_ring
+    second: {fileID: 2100000, guid: 4372211feb8552e4cb61bc8cf3d9e99c, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
