@@ -9,44 +9,20 @@ public class Target : MonoBehaviour
     {
 
     }
-    public float _Range = 10;
-    public GameObject _ExplosionEffect;
-    // Update is called once per frame
-    void Update()
+
+    private GameObject _Player;
+
+    public void OnTrigger(GameObject Player)
     {
-        RaycastHit _Hit;
-        Debug.DrawRay(transform.position, GameManagementScript._GameManagement._PlayerObject.transform.position - transform.position);
-        if (Physics.Raycast(transform.position, GameManagementScript._GameManagement._PlayerObject.transform.position - transform.position, out _Hit, Mathf.Clamp(_Range, 0, Vector3.Distance(GameManagementScript._GameManagement._PlayerObject.transform.position, transform.position) - 0.1f)))
-        {
-            Debug.Log("Hit");
-            if (_Hit.collider.gameObject == GameManagementScript._GameManagement._PlayerObject)
-            {
-                GameManagementScript._GameManagement._PlayerObject.GetComponent<PlayerControler>()._HomingTargets.Add(transform.position);
-            }
-        }
-        else
-        {
-            GameManagementScript._GameManagement._PlayerObject.GetComponent<PlayerControler>()._HomingTargets.Add(transform.position);
-        }
-
-
-
+        _Player = Player;
+        _Player.GetComponent<PlayerControler>()._HomingTargets.Add(gameObject);
     }
 
-    private void OnTriggerEnter(Collider other)
+    public void OnExit(GameObject Player)
     {
-        if (GameManagementScript._GameManagement._PlayerObject == other.gameObject)
-        {
-            if (GameManagementScript._GameManagement._PlayerObject.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Homing){
-                Rigidbody RB = GameManagementScript._GameManagement._PlayerObject.GetComponent<Rigidbody>();
-                Vector3 V = RB.velocity;
-                V.y = -V.y + 1;
-                GameManagementScript._GameManagement._PlayerObject.GetComponent<Rigidbody>().velocity = V;
-                GameManagementScript._GameManagement._PlayerObject.GetComponent<PlayerControler>()._PlayerState = PlayerControler.PlayerState.Normal;
-
-                Instantiate(_ExplosionEffect, transform.position, Quaternion.identity);
-                Destroy(gameObject);
-            }
-        }
+        Player.GetComponent<PlayerControler>()._HomingTargets.Remove(gameObject);
+        Player.GetComponent<PlayerControler>()._PlayerState = PlayerControler.PlayerState.Normal;
     }
+    
+    
 }
