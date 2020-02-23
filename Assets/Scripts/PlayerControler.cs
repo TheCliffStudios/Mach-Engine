@@ -205,6 +205,10 @@ public class PlayerControler : MonoBehaviour {
             _AnimationBody.GetComponent<Animator>().Play("Ball Loop");
             Jumping = true;
             _Grounded = false;
+            if (_PlayerState == PlayerState.RailGrinding)
+            {
+                _PlayerState = PlayerState.Normal;
+            }
         }
         else if (InputManager.PressedTime("Jump") > 2f) 
         {
@@ -253,7 +257,7 @@ public class PlayerControler : MonoBehaviour {
         GeneralPhysics();
         RB.velocity = Velocity;
         _AnimationRoot.transform.position = transform.position;
-        //DebugText._DebugText._Velocity = Velocity;
+        DebugText._DebugText._Velocity = Velocity;
     }
 
     void GeneralPhysics()
@@ -542,9 +546,63 @@ public class PlayerControler : MonoBehaviour {
         Velocity = (_HomingTarget.transform.position - transform.position).normalized * Mathf.Clamp(AirVelocity.magnitude, MaximumSpeed / 2, MaximumSpeed);
     }
 
+    float RailSpeed = 0;
+
+    public Rail _Rail;
+
+
     void RailGrindingPhysics()
     {
+        Vector3 BeforeMove = _Rail._Path.path.GetClosestPointOnPath(transform.position);
+        Vector3 AfterMove = _Rail._Path.path.GetClosestPointOnPath(transform.position + Velocity*Time.fixedDeltaTime);
 
+        Vector3 Direction = AfterMove - BeforeMove;
+
+        Vector3 Normal = _Rail._Path.path.GetNormalAtDistance(
+            _Rail._Path.path.GetClosestDistanceAlongPath(BeforeMove),
+            PathCreation.EndOfPathInstruction.Stop
+            );
+        Vector3 Forward = _Rail._Path.path.GetDirectionAtDistance(
+            _Rail._Path.path.GetClosestDistanceAlongPath(BeforeMove),
+            PathCreation.EndOfPathInstruction.Stop
+            );
+        Velocity = Direction.normalized * Velocity.magnitude;
+
+        if (Velocity.y < -0.1f)
+        {
+            Velocity = Velocity.normalized * (Velocity.magnitude + 0.1f);
+        }
+        else if (Velocity.y > 0.1f)
+        {
+            Velocity = Velocity.normalized * (Velocity.magnitude - 0.1f);
+        }
+
+        if (Vector3.Angle(Velocity, Forward) > 90)
+        {
+            transform.rotation = Quaternion.LookRotation(Velocity, -Vector3.Cross(Velocity, Normal));
+
+        }
+        else
+        {
+            transform.rotation = Quaternion.LookRotation(Velocity, Vector3.Cross(Velocity, Normal));
+        }
+
+        
+        
+        
+
+        
+
+        
+
+        _AnimationBody.GetComponent<Animator>().Play("RailLoop");
+        transform.position = BeforeMove + transform.up * Height;
+
+        if (AfterMove == _Rail._Path.path.vertices[0] || AfterMove == _Rail._Path.path.vertices[_Rail._Path.path.vertices.Length-1])
+        {
+            _PlayerState = PlayerState.Normal;
+
+        }
     }
 
     void GroundPoundPhysics()
@@ -553,6 +611,8 @@ public class PlayerControler : MonoBehaviour {
 
         Vector3 RayDirection = Vector3.zero;
         RayDirection = -transform.up;
+
+        
 
         if (Physics.Raycast(transform.position + -RayDirection * 0.5f, RayDirection, RayRange, _Ground))
         {

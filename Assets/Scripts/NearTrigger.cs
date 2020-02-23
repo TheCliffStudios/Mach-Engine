@@ -41,6 +41,13 @@ public class NearTrigger : MonoBehaviour
         {
             _S.OnTrigger(_Player);
         }
+
+        Rail _R = other.gameObject.GetComponent<Rail>();
+
+        if (_R != null)
+        {
+            _R.OnTrigger(_Player);
+        }
     }
 
     private void OnTriggerStay(Collider other)
