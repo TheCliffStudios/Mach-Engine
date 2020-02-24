@@ -5,10 +5,10 @@ ModelImporter:
   internalIDToNameTable:
   - first:
       74: 3513546053778005004
-    second: WallStickStart
+    second: Sonic_WallStick_Start
   - first:
       74: -1039326794790654342
-    second: WallStickJump
+    second: Sonic_WallStick_Jump
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -38,7 +38,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: WallStickStart
+      name: Sonic_WallStick_Start
       takeName: 
       internalID: 0
       firstFrame: 0
@@ -67,7 +67,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: WallStickJump
+      name: Sonic_WallStick_Jump
       takeName: 
       internalID: 0
       firstFrame: 5

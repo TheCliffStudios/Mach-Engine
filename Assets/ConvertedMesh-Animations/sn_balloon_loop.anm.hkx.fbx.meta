@@ -5,7 +5,7 @@ ModelImporter:
   internalIDToNameTable:
   - first:
       74: 5467323067473351565
-    second: TrickSpin
+    second: Sonic_TrickSpin
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,7 +35,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: TrickSpin
+      name: Sonic_TrickSpin
       takeName: 
       internalID: 0
       firstFrame: 0

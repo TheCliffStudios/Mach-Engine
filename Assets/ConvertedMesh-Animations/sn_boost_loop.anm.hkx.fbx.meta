@@ -5,7 +5,7 @@ ModelImporter:
   internalIDToNameTable:
   - first:
       74: -5865635675893132270
-    second: Boost
+    second: Sonic_Boost_Loop
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,7 +35,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Boost
+      name: Sonic_Boost_Loop
       takeName: 
       internalID: 0
       firstFrame: 0

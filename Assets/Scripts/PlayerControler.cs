@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class PlayerControler : MonoBehaviour {
 
-    public GameObject _AnimationBody;
+    //public GameObject _AnimationBody;
 
     public List<GameObject> _HomingTargets;
     public bool _ValidTarget = false;
@@ -204,7 +204,7 @@ public class PlayerControler : MonoBehaviour {
         {
             _PlayerState = PlayerState.Normal;
             Velocity = SpindashPower * transform.forward;
-            SAnimation.Event(SonicAnimationManager.SAnimationEvent.Normal, _PlayerState);
+            //SAnimation.Event(SonicAnimationManager.SAnimationEvent.Normal, _PlayerState);
         }
 
 
@@ -251,7 +251,8 @@ public class PlayerControler : MonoBehaviour {
         if (InputManager.IsJustPressed("Jump")  &&  (_Grounded || _PlayerState == PlayerState.RailGrinding || _PlayerState == PlayerState.WallSlide) && _PlayerState != PlayerState.SpinDash)
         {
             AirVelocity = _GroundNormal * 10;
-            _AnimationBody.GetComponent<Animator>().Play("Ball Loop");
+            //_AnimationBody.GetComponent<Animator>().Play("Ball Loop");
+            SAnimation.Event(SonicAnimationManager.SAnimationEvent.Jumping, _PlayerState);
             Jumping = true;
             _Grounded = false;
             if (_PlayerState == PlayerState.RailGrinding || _PlayerState == PlayerState.WallSlide)
@@ -277,7 +278,7 @@ public class PlayerControler : MonoBehaviour {
             if (InputManager.IsJustPressed("Jump") && _ValidTarget && !Jumping && _PlayerState != PlayerState.SpinDash)
             {
                 Velocity = (_HomingTarget.transform.position - transform.position).normalized * Mathf.Clamp(AirVelocity.magnitude, MaximumSpeed/2, MaximumSpeed);
-                _AnimationBody.GetComponent<Animator>().Play("Ball Loop");
+                SAnimation.Event(SonicAnimationManager.SAnimationEvent.Jumping, _PlayerState);
                 _PlayerState = PlayerState.Homing;
                 LastTarget = _HomingTarget;
             }
@@ -286,7 +287,7 @@ public class PlayerControler : MonoBehaviour {
         if (InputManager.IsJustPressed("GroundPound") && !_Grounded)
         {
             _PlayerState = PlayerState.GroundPound;
-            _AnimationBody.GetComponent<Animator>().Play("Stomp");
+            SAnimation.Event(SonicAnimationManager.SAnimationEvent.Groundpounding, _PlayerState);
             Jumping = false;
             Velocity = new Vector3(0, -20, 0);
         }
@@ -466,18 +467,7 @@ public class PlayerControler : MonoBehaviour {
                 Quaternion Q2 = Quaternion.LookRotation(transform.forward, _GroundNormal);
                 Rotate(Q2, 0.5f);
             }
-            if (!Jumping && _PlayerState == PlayerState.Normal)
-            {
-                //Process Animation
-                if (GroundVelocity.magnitude < 0.1f)
-                {
-                    _AnimationBody.GetComponent<Animator>().Play("IdleLoop");
-                }
-                else
-                {
-                    _AnimationBody.GetComponent<Animator>().Play("Boost");
-                }
-            }
+            
         }
 
         if (Velocity.y < -20 && !_Grounded)
@@ -653,7 +643,7 @@ public class PlayerControler : MonoBehaviour {
 
         
 
-        _AnimationBody.GetComponent<Animator>().Play("RailLoop");
+        
         transform.position = BeforeMove + transform.up * Height;
 
         if (AfterMove == _Rail._Path.path.vertices[0] || AfterMove == _Rail._Path.path.vertices[_Rail._Path.path.vertices.Length-1])
@@ -818,7 +808,7 @@ public class PlayerControler : MonoBehaviour {
             LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
         }
 
-        _AnimationBody.GetComponent<Animator>().Play("Ball Loop");
+        
 
 
         Vector3 NextPoint = transform.position + Velocity * Time.fixedDeltaTime;

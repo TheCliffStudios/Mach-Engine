@@ -10,7 +10,10 @@ public class BasicEnemy : MonoBehaviour
     public void OnTrigger(GameObject Player)
     {
         Instantiate(ExpolosionEffect, transform.position, transform.rotation);
-        
+        if (Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Homing)
+        {
+            Player.GetComponent<PlayerControler>().SAnimation.Event(SonicAnimationManager.SAnimationEvent.AttackHit, PlayerControler.PlayerState.Homing);
+        }
         if (InputManager.IsPressed("Jump"))
         {
             Player.GetComponent<PlayerControler>().Velocity.y = 5 ;

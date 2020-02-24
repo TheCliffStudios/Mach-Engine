@@ -5,7 +5,7 @@ ModelImporter:
   internalIDToNameTable:
   - first:
       74: -3824276326703063736
-    second: RailLoop
+    second: Sonic_Rail_Loop
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,7 +35,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: RailLoop
+      name: Sonic_Rail_Loop
       takeName: 
       internalID: 0
       firstFrame: 0
