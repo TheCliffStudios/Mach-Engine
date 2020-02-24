@@ -73,7 +73,7 @@ public class PlayerControler : MonoBehaviour {
     public Vector3 _Gravity = new Vector3(0, -9.81f, 0);
     public Vector3 _GroundNormal = Vector3.up;
     public Vector3 _V;
-
+    public AudioManager _SonicAudio;
     float InitialInputMag;
     float InitialLerpedInput;
 
@@ -106,6 +106,7 @@ public class PlayerControler : MonoBehaviour {
     public enum PlayerState
     {
         Normal,
+        Ball,
         GroundPound,
         RailGrinding,
         Homing,
@@ -116,6 +117,7 @@ public class PlayerControler : MonoBehaviour {
 
     private void Start()
     {
+        _SonicAudio.Play("FlyingBatteryBMG");
         RB = GetComponent<Rigidbody>();
         GameManagementScript._GameManagement._PlayerObject = gameObject;
         _CameraTransformDuplicate = new Trans(Camera.main.transform);
@@ -175,6 +177,13 @@ public class PlayerControler : MonoBehaviour {
 
         float _Angle = 70;
 
+        bool _PlayLockOnSound = false;
+
+        if (_HomingTarget == null)
+        {
+            _PlayLockOnSound = true;
+        }
+        _HomingTarget = null;
         _ValidTarget = false;
         for (int Index = 0; Index < _HomingTargets.Count; Index++)
         {
@@ -193,7 +202,18 @@ public class PlayerControler : MonoBehaviour {
             }
         }
 
-        
+        if (_ValidTarget && _PlayLockOnSound)
+        {
+            _SonicAudio.Play("LockOn");
+        }
+
+        if (InputManager.IsJustPressed("Ball") && _PlayerState == PlayerState.Normal)
+        {
+            _PlayerState = PlayerState.Ball;
+        }else if (InputManager.IsJustReleased("Ball") && _PlayerState == PlayerState.Ball)
+        {
+            _PlayerState = PlayerState.Normal;
+        }
 
        
 
@@ -266,6 +286,10 @@ public class PlayerControler : MonoBehaviour {
         {
             NormalPhysics();
         }
+        else if (_PlayerState == PlayerState.Ball)
+        {
+            BallPhysics();
+        }
         else if (_PlayerState == PlayerState.Homing)
         {
             HomingPhysics();
@@ -313,14 +337,14 @@ public class PlayerControler : MonoBehaviour {
 
             _GroundNormal = _Hit.normal;
             _Grounded = true;
-            CheckWallSlide(_Hit);
+            //CheckWallSlide(_Hit);
             if (_PlayerState != PlayerState.Normal) return;
 
             if (GroundVelocity == Vector3.zero)
             {
                 if (Vector3.Angle(Vector3.up, _GroundNormal) > _MaxGroundStandingAngle)
                 {
-                    Debug.Log("Higher");
+                    //Debug.Log("Higher");
                     Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
                     Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
 
@@ -328,11 +352,11 @@ public class PlayerControler : MonoBehaviour {
                     Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
 
                     Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.75f);
-
+                    _Grounded = false;
                 }
                 else
                 {
-                    Debug.Log("Lower");
+                    //Debug.Log("Lower");
                     Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
                     Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
                     Rotate(Q2, 0.75f);
@@ -351,7 +375,7 @@ public class PlayerControler : MonoBehaviour {
                     Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
 
                     Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.5f);
-
+                    if (Velocity.magnitude < MaximumSpeed / 5) _Grounded = false;
                 }
                 else
                 {
@@ -361,12 +385,12 @@ public class PlayerControler : MonoBehaviour {
                 }
                 //_GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
             }
-            if (!Jumping && Vector3.Angle(_GroundNormal, Velocity) > _VelocityGroundAngle) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; }
+            if (!Jumping && Vector3.Angle(_GroundNormal, Velocity) > _VelocityGroundAngle && _Grounded) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; }
             else { _Grounded = false; }//|| Vector3.Angle(_GroundNormal, Velocity) > 90
         }
         else
         {
-            Velocity = Velocity + (_Gravity * Time.fixedDeltaTime);
+            
             _Grounded = false;
             RB.isKinematic = false;
            
@@ -386,6 +410,8 @@ public class PlayerControler : MonoBehaviour {
             _GroundNormal = Vector3.up;
         }
 
+        if (!_Grounded) Velocity = Velocity + (_Gravity * Time.fixedDeltaTime);
+
         Debug.DrawLine(transform.position, transform.position + _GroundNormal, Color.green, 0.01f);
 
         if (!_Grounded)
@@ -393,7 +419,7 @@ public class PlayerControler : MonoBehaviour {
             _PlayerState = PlayerState.Normal;
         }
 
-        Debug.Log(GroundVelocity);
+        //Debug.Log(GroundVelocity);
 
         if (_Grounded)
         {
@@ -570,11 +596,11 @@ public class PlayerControler : MonoBehaviour {
 
         if (Velocity.y < -0.1f)
         {
-            Velocity = Velocity.normalized * (Velocity.magnitude + 0.1f);
+            Velocity = Velocity.normalized * (Mathf.Clamp(Velocity.magnitude + 0.1f, 0.5f, MaximumSpeed));
         }
         else if (Velocity.y > 0.1f)
         {
-            Velocity = Velocity.normalized * (Velocity.magnitude - 0.1f);
+            Velocity = Velocity.normalized * (Mathf.Clamp(Velocity.magnitude - 0.1f, 0.5f, MaximumSpeed));
         }
 
         if (Vector3.Angle(Velocity, Forward) > 90)
@@ -605,6 +631,177 @@ public class PlayerControler : MonoBehaviour {
         }
     }
 
+    void BallPhysics()
+    {
+        //PlayerState StartState = _PlayerState;
+        float lerp = 0.1f;
+        RaycastHit _Hit;
+        Vector3 RayDirection = Vector3.zero;
+
+
+        RayDirection = -transform.up;
+
+
+        float RayRange = 0;
+
+        if (_Grounded)
+        {
+            RayRange = Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed);
+
+        }
+        else
+        {
+            RayRange = GroundRaycastLengthMin;
+        }
+        Debug.DrawLine(transform.position + -RayDirection * 0.5f, transform.position + -RayDirection * 0.5f + (RayDirection) * RayRange, Color.blue, 0.01f);
+        //Debug.DrawRay(transform.position + -RayDirection * 0.5f, (RayDirection) * RayRange, Color.blue, 0.01f);
+        if (Physics.Raycast(transform.position + -RayDirection * 0.5f, RayDirection, out _Hit, RayRange, _Ground))
+        {
+
+            _GroundNormal = _Hit.normal;
+            _Grounded = true;
+            //CheckWallSlide(_Hit);
+            if (_PlayerState != PlayerState.Ball) return;
+
+            if (GroundVelocity == Vector3.zero)
+            {
+                if (Vector3.Angle(Vector3.up, _GroundNormal) > _MaxGroundStandingAngle)
+                {
+                    //Debug.Log("Higher");
+                    Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
+                    Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
+
+                    Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
+                    Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
+
+                    Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.75f);
+                    _Grounded = false;
+                }
+                else
+                {
+                    //Debug.Log("Lower");
+                    Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
+                    Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
+                    Rotate(Q2, 0.75f);
+                }
+                //_GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
+
+            }
+            else
+            {
+                if (Vector3.Angle(Vector3.up, _GroundNormal) > _MaxGroundStandingAngle)
+                {
+                    Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
+                    Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
+
+                    Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
+                    Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
+
+                    Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0.5f);
+                    if (Velocity.magnitude < MaximumSpeed / 5) _Grounded = false;
+                }
+                else
+                {
+                    Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
+                    Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
+                    Rotate(Q2, 0.75f);
+                }
+                //_GroundNormal = Vector3.Lerp(_GroundNormal, Normal, lerp);
+            }
+            if (!Jumping && Vector3.Angle(_GroundNormal, Velocity) > _VelocityGroundAngle && _Grounded) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; }
+            else { _Grounded = false; }//|| Vector3.Angle(_GroundNormal, Velocity) > 90
+        }
+        else
+        {
+
+            _Grounded = false;
+            RB.isKinematic = false;
+
+            Vector3 F1;
+            if (GroundVelocity == Vector3.zero)
+            {
+                F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
+            }
+            else
+            {
+                F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, GroundVelocity));
+            }
+
+
+            Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.Lerp(transform.up, Vector3.up, 5 * Time.fixedDeltaTime));
+            Rotate(Q1, 0f);
+            _GroundNormal = Vector3.up;
+        }
+
+        if (!_Grounded) Velocity = Velocity + (_Gravity * Time.fixedDeltaTime);
+
+        Debug.DrawLine(transform.position, transform.position + _GroundNormal, Color.green, 0.01f);
+
+        if (!_Grounded)
+        {
+            _PlayerState = PlayerState.Ball;
+        }
+
+        //Debug.Log(GroundVelocity);
+
+        if (_Grounded)
+        {
+            //Rotate towards the forward of movement
+            if (GroundVelocity.magnitude > 0.1f)
+            {
+                Quaternion Q2 = Quaternion.LookRotation(GroundVelocity, _GroundNormal);
+                Rotate(Q2, 0.5f);
+            }
+            else
+            {
+                Quaternion Q2 = Quaternion.LookRotation(transform.forward, _GroundNormal);
+                Rotate(Q2, 0.5f);
+            }
+            
+        }
+
+        if (Velocity.y < -20 && !_Grounded)
+        {
+            Vector3 V = Velocity;
+            V.y = -20;
+            Velocity = V;
+        }
+
+        Debug.DrawRay(transform.position, Vector3.Cross(_GroundNormal, Vector3.Cross(_CameraTransformDuplicate.Up, _CameraTransformDuplicate.Forward)).normalized, Color.red, 0.01f);
+        Vector3 GV = GroundVelocity;
+        
+
+        GroundVelocity = GV;
+
+        float HillToSpeedCurve = HillToSpeed.Evaluate(GroundVelocity.magnitude / MaximumSpeed)*2;
+
+        if (transform.forward.y > 0.2f)
+        {
+            float Z = Mathf.Clamp(LocalGroundVelocity.z - (HillToSpeedCurve * Time.fixedDeltaTime), 0, Mathf.Infinity);
+            LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
+        }
+        else if (transform.forward.y < -0.2f)
+        {
+            float Z = LocalGroundVelocity.z + (HillToSpeedCurve * Time.fixedDeltaTime);
+            LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
+        }
+
+        _AnimationBody.GetComponent<Animator>().Play("Ball Loop");
+
+
+        Vector3 NextPoint = transform.position + Velocity * Time.fixedDeltaTime;
+
+
+
+        if (_Grounded)
+        {
+            if (Physics.Raycast(NextPoint, -transform.up, out _Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed), _Ground))
+            {
+                Velocity += DownForce(_Hit) * Time.fixedDeltaTime;
+            }
+        }
+    }
+
     void GroundPoundPhysics()
     {
         float RayRange = GroundRaycastLengthMin;
@@ -623,7 +820,7 @@ public class PlayerControler : MonoBehaviour {
 
     void WallSlidePhysics()
     {
-
+        NormalPhysics();
     }
 
     void CheckWallSlide(RaycastHit _Hit)
@@ -682,27 +879,76 @@ public class PlayerControler : MonoBehaviour {
 
         RaycastHit _Hit;
 
-        if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.forward, out _Hit, 0.09f, _Ground)){
+        if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.forward, out _Hit, 0.2f, _Ground)){
+            LocalVelocity.x = 0;
+            Velocity = transform.TransformDirection(LocalVelocity);
             Debug.Log("Forward Colission Detected");
-            LocalVelocity.z = 0;
-        }else if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.forward, out _Hit, 0.09f, _Ground))
-        {
-            Debug.Log("Forward Colission Detected");
-            LocalVelocity.z = 0;
+            WallHit(_Hit);
         }
-        if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.right, out _Hit, 0.09f, _Ground))
+        else if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.forward, out _Hit, 0.2f, _Ground))
         {
-            Debug.Log("Forward Colission Detected");
             LocalVelocity.x = 0;
-        }else if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.right, out _Hit, 0.09f, _Ground))
+            Velocity = transform.TransformDirection(LocalVelocity);
+            Debug.Log("Forward Colission Detected");
+            WallHit(_Hit);
+        }
+        else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.right, out _Hit, 0.2f, _Ground))
         {
+            LocalVelocity.z = 0;
+            Velocity = transform.TransformDirection(LocalVelocity);
             Debug.Log("Forward Colission Detected");
-            LocalVelocity.x = 0;
+            WallHit(_Hit);
+        }
+        else if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.right, out _Hit, 0.2f, _Ground))
+        {
+            LocalVelocity.z = 0;
+            Velocity = transform.TransformDirection(LocalVelocity);
+            Debug.Log("Forward Colission Detected");
+            WallHit(_Hit);
+        }
+        else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.up, out _Hit, 0.2f, _Ground))
+        {
+            LocalVelocity.y = 0;
+            Velocity = transform.TransformDirection(LocalVelocity);
+            WallHit(_Hit);
         }
 
-
-        Velocity = transform.TransformDirection(LocalVelocity);
+        
     }
+
+    void WallHit(RaycastHit _Hit)
+    {
+        if (_Grounded) return;
+        if (Vector3.Angle(Vector3.up, _GroundNormal) > _MaxGroundStandingAngle)
+        {
+            if (Velocity.magnitude > MaximumSpeed / 2)
+            {
+                _GroundNormal = _Hit.normal;
+                //Debug.Log("Higher");
+                Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
+                Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
+
+                Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
+                Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
+
+                Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0);
+                _Grounded = true;
+            }
+            else
+            {
+
+            }
+        }
+        else
+        {
+            _GroundNormal = _Hit.normal;
+            //Debug.Log("Lower");
+            Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
+            Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
+            Rotate(Q2, 0.75f);
+        }
+    }
+
 }
 
 

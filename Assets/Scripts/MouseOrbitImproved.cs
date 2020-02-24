@@ -36,6 +36,8 @@ public class MouseOrbitImproved : MonoBehaviour {
             rigidbody.freezeRotation = true;
         }
     }
+
+    float Timer = 0;
  
     void LateUpdate () 
     {
@@ -49,19 +51,41 @@ public class MouseOrbitImproved : MonoBehaviour {
  
             y = ClampAngle(y, yMinLimit, yMaxLimit);
 
-            Quaternion rotation = Quaternion.Lerp(transform.rotation, Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up) * Quaternion.Euler(y, x, 0), 50f*Time.deltaTime); //Quaternion.Lerp(transform.rotation, target.rotation, 1 * Time.deltaTime) || Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up)
+            if (Input.GetAxis("Mouse X") == 0 && Input.GetAxis("Mouse Y") == 0)
+            {
+                //Timer += 0.5f*Time.deltaTime;
+            }
+            else
+            {
+                Timer = 0;
+            }
+
+            Vector3 Forward = (PC.Velocity);
+
+            if(Forward.magnitude < 0.1f)
+            {
+                Forward = transform.forward;
+            }
+
+            Quaternion F = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(Forward, PC.gameObject.transform.up), 50f * Time.deltaTime);
+
+            Quaternion rotation = Quaternion.Lerp(transform.rotation, Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up) * Quaternion.Euler(y, x, 0), 50f *Time.deltaTime); //Quaternion.Lerp(transform.rotation, target.rotation, 1 * Time.deltaTime) || Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up)
             //Quaternion rotation =  Quaternion.Euler(y, x, 0);
+
+            F = Quaternion.Lerp(rotation, F, Timer);
+
+            
             distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel")*5, distanceMin, distanceMax);
- 
+            float NDistance = distance;
             RaycastHit hit;
             if (Physics.Linecast (target.position, transform.position, out hit)) 
             {
-                //distance -=  hit.distance;
+                NDistance -=  hit.distance;
             }
-            Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
-            Vector3 position = rotation * negDistance + target.position;
+            Vector3 negDistance = new Vector3(0.0f, 0.0f, -NDistance);
+            Vector3 position = F * negDistance + target.position;
  
-            transform.rotation = rotation;
+            transform.rotation = F;
             transform.position = position;
         }
     }

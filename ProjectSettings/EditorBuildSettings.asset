@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Green Hill Zone.unity
+    guid: 754309fdbb3531842b619beef6487b71
   m_configObjects: {}
