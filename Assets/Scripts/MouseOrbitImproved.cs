@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
- 
+
+using com.ootii.Input;
+
 [AddComponentMenu("Camera-Control/Mouse Orbit with zoom")]
 public class MouseOrbitImproved : MonoBehaviour {
  
@@ -46,8 +48,8 @@ public class MouseOrbitImproved : MonoBehaviour {
 
 
 
-            x += Input.GetAxis("Mouse X") * xSpeed * distance * 0.02f;
-            y += Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+            x += (Input.GetAxis("Mouse X") + InputManager.RightStickX) * xSpeed * distance * 0.02f;
+            y += (Input.GetAxis("Mouse Y") + InputManager.RightStickY) * ySpeed * 0.02f;
  
             y = ClampAngle(y, yMinLimit, yMaxLimit);
 

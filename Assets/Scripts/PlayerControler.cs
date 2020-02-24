@@ -89,6 +89,7 @@ public class PlayerControler : MonoBehaviour {
     public float AirAcell = 1.2f;
     public float Decel = 0.4f;
     public float TurningSpeed = 2.5f;
+    public float AirTurningSpeed = 3.5f;
     public float _VelocityGroundAngle = 40f;
     public bool UtopiaTurning = false;
     public bool _Grounded;
@@ -103,6 +104,10 @@ public class PlayerControler : MonoBehaviour {
 
     public Vector2 WallStickAngleRange = new Vector2(50, 130);
 
+    private float SpindashPower = 0;
+    public SonicAnimationManager SAnimation;
+
+
     public enum PlayerState
     {
         Normal,
@@ -110,7 +115,8 @@ public class PlayerControler : MonoBehaviour {
         GroundPound,
         RailGrinding,
         Homing,
-        WallSlide
+        WallSlide,
+        SpinDash
     }
 
     public PlayerState _PlayerState = PlayerState.Normal;
@@ -179,6 +185,29 @@ public class PlayerControler : MonoBehaviour {
 
         bool _PlayLockOnSound = false;
 
+        if (PlayerState.SpinDash == _PlayerState && InputManager.IsJustPressed("Jump"))
+        {
+            SpindashPower += 2;
+        }
+
+        if (_Grounded && (_PlayerState == PlayerState.Normal || _PlayerState == PlayerState.Ball) && Vector3.Angle(Vector3.up, _GroundNormal) < _MaxGroundStandingAngle)
+        {
+            if (InputManager.IsPressed("Ball") && InputManager.IsJustPressed("Jump"))
+            {
+                _PlayerState = PlayerState.SpinDash;
+                SpindashPower = 20;
+                SAnimation.Event(SonicAnimationManager.SAnimationEvent.SpinDash, _PlayerState);
+            }
+        }
+
+        if (PlayerState.SpinDash == _PlayerState && InputManager.IsJustReleased("Ball"))
+        {
+            _PlayerState = PlayerState.Normal;
+            Velocity = SpindashPower * transform.forward;
+            SAnimation.Event(SonicAnimationManager.SAnimationEvent.Normal, _PlayerState);
+        }
+
+
         if (_HomingTarget == null)
         {
             _PlayLockOnSound = true;
@@ -202,7 +231,7 @@ public class PlayerControler : MonoBehaviour {
             }
         }
 
-        if (_ValidTarget && _PlayLockOnSound)
+        if (_ValidTarget && _PlayLockOnSound && !_Grounded)
         {
             _SonicAudio.Play("LockOn");
         }
@@ -219,30 +248,33 @@ public class PlayerControler : MonoBehaviour {
 
         
 
-        if (InputManager.IsJustPressed("Jump")  &&  _Grounded)
+        if (InputManager.IsJustPressed("Jump")  &&  (_Grounded || _PlayerState == PlayerState.RailGrinding || _PlayerState == PlayerState.WallSlide) && _PlayerState != PlayerState.SpinDash)
         {
             AirVelocity = _GroundNormal * 10;
             _AnimationBody.GetComponent<Animator>().Play("Ball Loop");
             Jumping = true;
             _Grounded = false;
-            if (_PlayerState == PlayerState.RailGrinding)
+            if (_PlayerState == PlayerState.RailGrinding || _PlayerState == PlayerState.WallSlide)
             {
+
                 _PlayerState = PlayerState.Normal;
+                
             }
         }
-        else if (InputManager.PressedTime("Jump") > 2f) 
+        else if (InputManager.PressedTime("Jump") > 2f && _PlayerState != PlayerState.SpinDash) 
         {
 
             Jumping = false;
 
         }
-        if (InputManager.IsJustReleased("Jump"))
+        if (InputManager.IsJustReleased("Jump") && _PlayerState != PlayerState.SpinDash)
         {
-            
+            Jumping = false;
+            if (InputManager.PressedTime("Jump") < 2f) Velocity.y = 0;
         }
         else
         {
-            if (InputManager.IsJustPressed("Jump") && _ValidTarget && !Jumping)
+            if (InputManager.IsJustPressed("Jump") && _ValidTarget && !Jumping && _PlayerState != PlayerState.SpinDash)
             {
                 Velocity = (_HomingTarget.transform.position - transform.position).normalized * Mathf.Clamp(AirVelocity.magnitude, MaximumSpeed/2, MaximumSpeed);
                 _AnimationBody.GetComponent<Animator>().Play("Ball Loop");
@@ -272,7 +304,7 @@ public class PlayerControler : MonoBehaviour {
     public GameObject _AnimationRoot;
     private void FixedUpdate()
     {
-        //Velocity = Vector3.Lerp(Velocity, RB.velocity, 1 * Time.fixedDeltaTime);
+        Velocity = Vector3.Lerp(Velocity, RB.velocity, 10 * Time.fixedDeltaTime);
         BoundsCheck();
         GeneralPhysics();
         RB.velocity = Velocity;
@@ -516,7 +548,7 @@ public class PlayerControler : MonoBehaviour {
                 {
                     float Mag = GV.magnitude;
 
-                    GV = Vector3.Lerp(GV.normalized, Input.normalized, Time.fixedDeltaTime * TurningSpeed) * Mag;
+                    GV = Vector3.Lerp(GV.normalized, Input.normalized, Time.fixedDeltaTime * AirTurningSpeed) * Mag;
                 }
                 if (GV.magnitude > MaximumSpeed)
                 {
@@ -820,13 +852,15 @@ public class PlayerControler : MonoBehaviour {
 
     void WallSlidePhysics()
     {
-        NormalPhysics();
+        //NormalPhysics();
+
+        Velocity = Vector3.zero;
     }
 
     void CheckWallSlide(RaycastHit _Hit)
     {
         
-        if (Vector3.Angle(Vector3.up, _Hit.normal) > WallStickAngleRange.x && Vector3.Angle(Vector3.up, _Hit.normal) < WallStickAngleRange.y && GroundVelocity.magnitude < MaximumSpeed / 10 && _PlayerState == PlayerState.Normal)
+        if (Vector3.Angle(Vector3.up, _Hit.normal) > WallStickAngleRange.x && Vector3.Angle(Vector3.up, _Hit.normal) < WallStickAngleRange.y && GroundVelocity.magnitude < MaximumSpeed / 10)
         {
             _PlayerState = PlayerState.WallSlide;
 
@@ -879,36 +913,36 @@ public class PlayerControler : MonoBehaviour {
 
         RaycastHit _Hit;
 
-        if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.forward, out _Hit, 0.2f, _Ground)){
-            LocalVelocity.x = 0;
+        if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.forward, out _Hit, 0.3f, _Ground)){
+            //LocalVelocity.x = 0;
             Velocity = transform.TransformDirection(LocalVelocity);
             Debug.Log("Forward Colission Detected");
             WallHit(_Hit);
         }
-        else if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.forward, out _Hit, 0.2f, _Ground))
+        else if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.forward, out _Hit, 0.3f, _Ground))
         {
-            LocalVelocity.x = 0;
+            //LocalVelocity.x = 0;
             Velocity = transform.TransformDirection(LocalVelocity);
             Debug.Log("Forward Colission Detected");
             WallHit(_Hit);
         }
-        else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.right, out _Hit, 0.2f, _Ground))
+        else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.right, out _Hit, 0.3f, _Ground))
         {
-            LocalVelocity.z = 0;
+            //LocalVelocity.z = 0;
             Velocity = transform.TransformDirection(LocalVelocity);
             Debug.Log("Forward Colission Detected");
             WallHit(_Hit);
         }
-        else if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.right, out _Hit, 0.2f, _Ground))
+        else if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.right, out _Hit, 0.3f, _Ground))
         {
-            LocalVelocity.z = 0;
+            //LocalVelocity.z = 0;
             Velocity = transform.TransformDirection(LocalVelocity);
             Debug.Log("Forward Colission Detected");
             WallHit(_Hit);
         }
-        else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.up, out _Hit, 0.2f, _Ground))
+        else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.up, out _Hit, 0.3f, _Ground))
         {
-            LocalVelocity.y = 0;
+            //LocalVelocity.y = 0;
             Velocity = transform.TransformDirection(LocalVelocity);
             WallHit(_Hit);
         }
@@ -918,21 +952,44 @@ public class PlayerControler : MonoBehaviour {
 
     void WallHit(RaycastHit _Hit)
     {
+        Debug.Log("CheckWallSlide");
         if (_Grounded) return;
-        if (Vector3.Angle(Vector3.up, _GroundNormal) > _MaxGroundStandingAngle)
+        if (Vector3.Angle(Vector3.up, _Hit.normal) > _MaxGroundStandingAngle)
         {
-            if (Velocity.magnitude > MaximumSpeed / 2)
+            Debug.Log("Higher");
+            if (Velocity.magnitude > MaximumSpeed / 5)
             {
-                _GroundNormal = _Hit.normal;
-                //Debug.Log("Higher");
-                Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
-                Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
 
-                Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
-                Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
+                if (Vector3.Angle(GroundVelocity, -_Hit.normal) > 20)
+                {
+                    if (Velocity.magnitude < MaximumSpeed / 3) return;
+                        Debug.Log("WallRun");
+                    _GroundNormal = _Hit.normal;
+                    //Debug.Log("Higher");
+                    Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
+                    Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
 
-                Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0);
-                _Grounded = true;
+                    Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
+                    Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
+
+                    Rotate(Quaternion.Lerp(Q1, Q2, GroundVelocity.magnitude * 5 / MaximumSpeed), 0);
+                    _Grounded = true;
+                }
+                else
+                {
+                    Debug.Log("WallSlide");
+                    _PlayerState = PlayerState.WallSlide;
+
+                    _GroundNormal = _Hit.normal;
+                    //Debug.Log("Higher");
+                    Vector3 F2 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, _GroundNormal));
+
+                    
+                    Quaternion Q2 = Quaternion.LookRotation(F2, Vector3.up);
+
+                    Rotate(Q2, 0);
+                    _Grounded = true;
+                }
             }
             else
             {
