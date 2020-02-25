@@ -48,6 +48,13 @@ public class NearTrigger : MonoBehaviour
         {
             _R.OnTrigger(_Player);
         }
+
+        Ring _RI = other.gameObject.GetComponent<Ring>();
+
+        if (_RI != null)
+        {
+            _RI.OnTrigger();
+        }
     }
 
     private void OnTriggerStay(Collider other)

@@ -27,11 +27,41 @@ public class GameManagementScript : MonoBehaviour
         }
     }
 
-    public GameObject _PlayerObject; 
+    private void Start()
+    {
+        _GameUIController.MaxSpeed = _PlayerObject.GetComponent<PlayerControler>().MaximumSpeed;
+        StartLevel();
+        Cursor.lockState = CursorLockMode.Locked;
+        
+    }
+
+    public GameUIController _GameUIController;
+    public GameObject _PlayerObject;
+    bool LevelActive = false;
+    public float Timer = 0;
+    public int Lives = 3;
+    public LevelManager LM;
 
     // Update is called once per frame
     void Update()
     {
+        if (LevelActive)
+        {
+            Timer += (Time.deltaTime * 60);
+            _GameUIController.Speed = _PlayerObject.GetComponent<PlayerControler>().Velocity.magnitude;
+            _GameUIController.Timer = Timer;
+            _GameUIController.Lives = 3;
+            _GameUIController.RingCount = LM.Ring;
+        }
         
     }
+
+    void StartLevel()
+    {
+        LevelActive = true;
+        Timer = 0;
+        LM = gameObject.AddComponent<LevelManager>();
+        LM._Player = _PlayerObject;
+    }
+
 }

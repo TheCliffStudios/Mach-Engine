@@ -19,7 +19,8 @@ public class MouseOrbitImproved : MonoBehaviour {
     public float distanceMax = 15f;
  
     private Rigidbody rigidbody;
- 
+    public LayerMask Ground;
+
     float x = 0.0f;
     float y = 0.0f;
  
@@ -80,11 +81,12 @@ public class MouseOrbitImproved : MonoBehaviour {
             distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel")*5, distanceMin, distanceMax);
             float NDistance = distance;
             RaycastHit hit;
-            if (Physics.Linecast (target.position, transform.position, out hit)) 
+            if (Physics.Linecast (target.position, transform.position, out hit, Ground)) 
             {
-                NDistance -=  hit.distance;
+                distance -=  hit.distance;
             }
-            Vector3 negDistance = new Vector3(0.0f, 0.0f, -NDistance);
+
+            Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
             Vector3 position = F * negDistance + target.position;
  
             transform.rotation = F;

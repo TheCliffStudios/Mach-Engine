@@ -41,12 +41,36 @@ public class SonicAnimationManager : MonoBehaviour
 
     private void LateUpdate()
     {
+        _AnimationRoot.transform.position = transform.position;
+        _AnimationRoot.transform.rotation = transform.rotation;
+        if (_PC.Velocity.magnitude > (_PC.MaximumSpeed * 0.75))
+        {
+            _PC.gameObject.GetComponentInChildren<TrailRenderer>().emitting = true;
+        }
+        else
+        {
+            _PC.gameObject.GetComponentInChildren<TrailRenderer>().emitting = false;
+        }
         if (_BallBody.activeSelf)
         {
             _BallBody.transform.RotateAround(_BallBody.transform.position + 0.3025f * _BallBody.transform.up, _BallBody.transform.right, 2000 * Time.deltaTime);
         }
 
-        
+        if (_PC._PlayerState == PlayerControler.PlayerState.WallSlide)
+        {
+            _SonicBody.transform.localRotation = Quaternion.Euler(90, 90, 0);
+            Debug.Log("WallSlideAni");
+            if (LastState == PlayerControler.PlayerState.Normal || LastState == PlayerControler.PlayerState.Ball)
+            {
+                Debug.Log("PlayingWallSlide");
+                SetSpeed(1);
+                Play("WallStick_Start");
+            }
+        }
+        else
+        {
+            _SonicBody.transform.localRotation = Quaternion.Euler(90, 0, 0);
+        }
 
         if (ThisEvent == SAnimationEvent.Null && WaitTime <= 0)
         {
@@ -130,9 +154,10 @@ public class SonicAnimationManager : MonoBehaviour
                 }
                 else if (_PC._PlayerState == PlayerControler.PlayerState.WallSlide)
                 {
-                    
-                    if (LastState != PlayerControler.PlayerState.WallSlide)
+                    Debug.Log("WallSlideAni");
+                    if (LastState == PlayerControler.PlayerState.Normal || LastState == PlayerControler.PlayerState.Ball)
                     {
+                        Debug.Log("PlayingWallSlide");
                         SetSpeed(1);
                         Play("WallStick_Start");
                     }

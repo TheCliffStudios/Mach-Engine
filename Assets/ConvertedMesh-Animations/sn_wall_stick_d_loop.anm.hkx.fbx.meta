@@ -5,7 +5,7 @@ ModelImporter:
   internalIDToNameTable:
   - first:
       74: -8189185501924710737
-    second: Sonic_WallStick_Loop
+    second: Sonic_WallStick_Down
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,7 +35,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Sonic_WallStick_Loop
+      name: Sonic_WallStick_Down
       takeName: 
       internalID: 0
       firstFrame: 0
