@@ -7,7 +7,7 @@ public class SonicAnimationManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        _DamageObject = _PC._DamageObject;
     }
 
     public GameObject _AnimationRoot;
@@ -15,6 +15,7 @@ public class SonicAnimationManager : MonoBehaviour
     public GameObject _BallBody;
     public PlayerControler _PC;
     public LayerMask _Ground;
+    DamageObject _DamageObject;
 
     private SAnimationEvent ThisEvent;
     private float WaitTime;
@@ -58,6 +59,8 @@ public class SonicAnimationManager : MonoBehaviour
 
         if (_PC._PlayerState == PlayerControler.PlayerState.WallSlide)
         {
+            _PC._AttackLevel = DamageObject.AttackLevel.L1;
+            _PC._DefenseLevel = DamageObject.DefenseLevel.L1;
             _SonicBody.transform.localRotation = Quaternion.Euler(90, 90, 0);
             Debug.Log("WallSlideAni");
             if (LastState == PlayerControler.PlayerState.Normal || LastState == PlayerControler.PlayerState.Ball)
@@ -77,8 +80,11 @@ public class SonicAnimationManager : MonoBehaviour
             
             if (!WasGrounded && _PC._Grounded)
             {
+
                 if (LastState == PlayerControler.PlayerState.GroundPound)
                 {
+                    _PC._AttackLevel = DamageObject.AttackLevel.L1;
+                    _PC._DefenseLevel = DamageObject.DefenseLevel.L1;
                     SetSpeed(1);
                     Play("StompLand");
                     WaitTime = 30;
@@ -88,6 +94,8 @@ public class SonicAnimationManager : MonoBehaviour
             {
                 if (_PC._PlayerState == PlayerControler.PlayerState.Normal)
                 {
+                    _PC._AttackLevel = DamageObject.AttackLevel.L1;
+                    _PC._DefenseLevel = DamageObject.DefenseLevel.L1;
                     SetSpeed(1);
                     _SonicBody.SetActive(true);
                     _BallBody.SetActive(false);
@@ -116,6 +124,8 @@ public class SonicAnimationManager : MonoBehaviour
                     }
                     else
                     {
+                        _PC._AttackLevel = DamageObject.AttackLevel.L2;
+                        _PC._DefenseLevel = DamageObject.DefenseLevel.L2;
                         SetSpeed(1);
                         Play("Ball_Loop");
                     }
@@ -123,6 +133,8 @@ public class SonicAnimationManager : MonoBehaviour
                 }
                 else if (_PC._PlayerState == PlayerControler.PlayerState.Ball)
                 {
+                    _PC._AttackLevel = DamageObject.AttackLevel.L2;
+                    _PC._DefenseLevel = DamageObject.DefenseLevel.L2;
                     if (_PC.Velocity.magnitude < 0.1f)
                     {
                         if (LastState != PlayerControler.PlayerState.Ball) Play("StandToSquat");
@@ -136,24 +148,34 @@ public class SonicAnimationManager : MonoBehaviour
                     }
                 }else if (_PC._PlayerState == PlayerControler.PlayerState.GroundPound)
                 {
+                    _PC._AttackLevel = DamageObject.AttackLevel.L2;
+                    _PC._DefenseLevel = DamageObject.DefenseLevel.L2;
                     SetSpeed(1);
                     Play("Stomp_Loop");
                 }else if (_PC._PlayerState == PlayerControler.PlayerState.Homing)
                 {
+                    _PC._AttackLevel = DamageObject.AttackLevel.L2;
+                    _PC._DefenseLevel = DamageObject.DefenseLevel.L2;
                     SetSpeed(1);
                     Play("Ball_Loop");
                 }
                 else if (_PC._PlayerState == PlayerControler.PlayerState.RailGrinding)
                 {
+                    _PC._AttackLevel = DamageObject.AttackLevel.L1;
+                    _PC._DefenseLevel = DamageObject.DefenseLevel.L1;
                     SetSpeed(1);
                     Play("Rail_Loop");
                 }else if (_PC._PlayerState == PlayerControler.PlayerState.SpinDash)
                 {
+                    _PC._AttackLevel = DamageObject.AttackLevel.L2;
+                    _PC._DefenseLevel = DamageObject.DefenseLevel.L2;
                     SetSpeed(1);
                     Play("Ball_Loop");
                 }
                 else if (_PC._PlayerState == PlayerControler.PlayerState.WallSlide)
                 {
+                    _PC._AttackLevel = DamageObject.AttackLevel.L1;
+                    _PC._DefenseLevel = DamageObject.DefenseLevel.L1;
                     Debug.Log("WallSlideAni");
                     if (LastState == PlayerControler.PlayerState.Normal || LastState == PlayerControler.PlayerState.Ball)
                     {
@@ -206,6 +228,7 @@ public class SonicAnimationManager : MonoBehaviour
             int Num = Random.Range(1, 5);
             Play("Homing_Trick_" + Num);
             WaitTime = 20;
+            _PC._PlayerState = PlayerControler.PlayerState.Normal;
         }
         else if (SEvent == SAnimationEvent.SpinDash)
         {

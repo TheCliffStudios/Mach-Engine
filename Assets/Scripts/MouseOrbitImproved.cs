@@ -72,7 +72,7 @@ public class MouseOrbitImproved : MonoBehaviour {
 
             Quaternion F = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(Forward, PC.gameObject.transform.up), 50f * Time.deltaTime);
 
-            Quaternion rotation = Quaternion.Lerp(transform.rotation, Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up) * Quaternion.Euler(y, x, 0), 50f *Time.deltaTime); //Quaternion.Lerp(transform.rotation, target.rotation, 1 * Time.deltaTime) || Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up)
+            Quaternion rotation = Quaternion.Lerp(transform.rotation, Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up) * Quaternion.Euler(y, x, 0), 10f *Time.deltaTime); //Quaternion.Lerp(transform.rotation, target.rotation, 1 * Time.deltaTime) || Quaternion.FromToRotation(Vector3.up, PC.gameObject.transform.up)
             //Quaternion rotation =  Quaternion.Euler(y, x, 0);
 
             F = Quaternion.Lerp(rotation, F, Timer);

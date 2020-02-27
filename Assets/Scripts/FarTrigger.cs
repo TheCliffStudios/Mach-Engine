@@ -17,6 +17,13 @@ public class FarTrigger : MonoBehaviour
         {
             _T.OnTrigger(_Player);
         }
+
+        RailTarget _RT = other.gameObject.GetComponent<RailTarget>();
+
+        if (_RT != null)
+        {
+            _RT.OnTrigger(_Player);
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -27,6 +34,13 @@ public class FarTrigger : MonoBehaviour
         if (_T != null)
         {
             _T.OnExit(_Player);
+        }
+
+        RailTarget _RT = other.gameObject.GetComponent<RailTarget>();
+
+        if (_RT != null)
+        {
+            _RT.OnExit(_Player);
         }
     }
 }

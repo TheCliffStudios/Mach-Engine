@@ -9,7 +9,7 @@ public class NearTrigger : MonoBehaviour
     {
         
     }
-
+    
     public GameObject _Player;
 
     // Update is called once per frame

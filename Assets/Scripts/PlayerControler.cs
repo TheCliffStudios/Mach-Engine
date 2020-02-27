@@ -103,6 +103,7 @@ public class PlayerControler : MonoBehaviour {
     public float _MaxGroundStandingAngle = 30;
     public float _FallOffAngle = 120;
     public float _FallOffSpeed = 30;
+    public float _WallSlideSpeed = 5;
 
     public Vector2 WallStickAngleRange = new Vector2(50, 130);
 
@@ -123,6 +124,15 @@ public class PlayerControler : MonoBehaviour {
 
     public PlayerState _PlayerState = PlayerState.Normal;
 
+    public DamageObject _DamageObject;
+
+    private void Awake()
+    {
+        _DamageObject = gameObject.AddComponent<DamageObject>();
+        _DamageObject._OnDamage = OnHit;
+        _DamageObject._OnDeath = OnDeath;
+    }
+
     private void Start()
     {
         _SonicAudio.Play("FlyingBatteryBMG");
@@ -130,7 +140,14 @@ public class PlayerControler : MonoBehaviour {
         GameManagementScript._GameManagement._PlayerObject = gameObject;
         _CameraTransformDuplicate = new Trans(Camera.main.transform);
         Velocity = RB.velocity;
+
+        
     }
+
+    public DamageObject.AttackLevel _AttackLevel = DamageObject.AttackLevel.L1;
+    public DamageObject.DefenseLevel _DefenseLevel = DamageObject.DefenseLevel.L1;
+
+    public float _SideStepLength = 5;
 
     private void Update()
     {
@@ -140,7 +157,10 @@ public class PlayerControler : MonoBehaviour {
 
         // Get curve position
 
-        
+        if (InputManager.IsJustPressed("Respawn"))
+        {
+            OnDeath();
+        }
 
         
 
@@ -168,7 +188,58 @@ public class PlayerControler : MonoBehaviour {
         {
             h = -1;
         }
-        
+
+        if (InputManager.IsJustPressed("LeftStep") && _PlayerState == PlayerState.Normal)
+        {
+            RaycastHit _Hit;
+            if (Physics.Raycast(transform.position + transform.up * 0.5f, -transform.right, out _Hit, _SideStepLength, _Ground)){
+                //Step onto wall
+                if (Velocity.magnitude > _WallSlideSpeed)
+                {
+                    _GroundNormal = _Hit.normal;
+                    _Grounded = true;
+                    transform.position = transform.position - transform.right * (_Hit.distance - 0.5f) + transform.up * 0.5f;
+                    Orientation(_Hit, 0);
+                }
+                else
+                {
+                    transform.position = transform.position - transform.right * (_Hit.distance - 0.5f);
+                }
+
+            }
+            else
+            {
+                //SideStep
+                transform.position = transform.position - transform.right * _SideStepLength;
+            }
+        }
+
+        if (InputManager.IsJustPressed("RightStep") && _PlayerState == PlayerState.Normal)
+        {
+            RaycastHit _Hit;
+            if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.right, out _Hit, _SideStepLength, _Ground))
+            {
+                //Step onto wall
+                if (Velocity.magnitude > _WallSlideSpeed)
+                {
+                    _GroundNormal = _Hit.normal;
+                    _Grounded = true;
+                    transform.position = transform.position + transform.right * (_Hit.distance - 0.5f) + transform.up * 0.5f;
+                    Orientation(_Hit, 0);
+                }
+                else
+                {
+                    transform.position = transform.position + transform.right * (_Hit.distance - 0.5f);
+                }
+
+            }
+            else
+            {
+                //SideStep
+                transform.position = transform.position + transform.right * _SideStepLength;
+            }
+        }
+
         // calculate move direction
         Vector3 moveInp = new Vector3(h, 0, v);
         InitialInputMag = moveInp.sqrMagnitude;
@@ -183,7 +254,7 @@ public class PlayerControler : MonoBehaviour {
         _MoveInput = moveInp;
         //if (Time.frameCount % 5 == 0) { Jumping = false; }
 
-        float _Angle = 70;
+        float _Angle = 40;
 
         bool _PlayLockOnSound = false;
 
@@ -225,11 +296,29 @@ public class PlayerControler : MonoBehaviour {
         }
         foreach (GameObject Target in _HomingTargets)
         {
-            if (_Angle > Vector3.Angle(_CameraTransformDuplicate.Forward, Target.transform.position - _CameraTransformDuplicate.position))
+            if (Target.GetComponent<RailTarget>() == null)
             {
-                _Angle = Vector3.Angle(_CameraTransformDuplicate.Forward, Target.transform.position - _CameraTransformDuplicate.position);
-                _ValidTarget = true;
-                _HomingTarget = Target;
+                if (_Angle > Vector3.Angle(_CameraTransformDuplicate.Forward, Target.transform.position - _CameraTransformDuplicate.position))
+                {
+                    _Angle = Vector3.Angle(_CameraTransformDuplicate.Forward, Target.transform.position - _CameraTransformDuplicate.position);
+                    _ValidTarget = true;
+                    _HomingTarget = Target;
+                    
+                }
+            }
+            else
+            {
+                Rail _R = Target.GetComponentInParent<Rail>();
+
+                Vector3 ClostestPoint = _R._Path.path.GetClosestPointOnPath(transform.position);
+
+                if (_Angle > Vector3.Angle(_CameraTransformDuplicate.Forward, ClostestPoint - _CameraTransformDuplicate.position))
+                {
+                    _Angle = Vector3.Angle(_CameraTransformDuplicate.Forward, ClostestPoint - _CameraTransformDuplicate.position);
+                    _ValidTarget = true;
+                    _HomingTarget = Target;
+                    RailPoint = ClostestPoint;
+                }
             }
         }
 
@@ -298,7 +387,14 @@ public class PlayerControler : MonoBehaviour {
 
         if (_ValidTarget && !_Grounded)
         {
-            _TargetImage.transform.position = Camera.main.WorldToScreenPoint(_HomingTarget.transform.position);
+            if (LastTarget.GetComponent<RailTarget>() == null)
+            {
+                _TargetImage.transform.position = Camera.main.WorldToScreenPoint(_HomingTarget.transform.position);
+            }
+            else
+            {
+                _TargetImage.transform.position = Camera.main.WorldToScreenPoint(RailPoint);
+            }
             _TargetImage.enabled = true;
         }
         else
@@ -373,13 +469,14 @@ public class PlayerControler : MonoBehaviour {
 
             _GroundNormal = _Hit.normal;
             _Grounded = true;
-
-            Orientation(_Hit);
+            
+            Orientation(_Hit, 1f);
             if (_PlayerState != PlayerState.Normal)
             {
                 return;
             }
-            
+            _GroundNormal = transform.up;
+            // && Vector3.Angle(-_GroundNormal, Velocity.normalized) > _VelocityGroundAngle
             if (!Jumping && Vector3.Angle(_GroundNormal, Velocity.normalized) > _VelocityGroundAngle && _Grounded) { RB.MovePosition(_Hit.point + _GroundNormal * Height); AirVelocity = Vector3.zero; }
             //else { _Grounded = false; }//|| Vector3.Angle(_GroundNormal, Velocity) > 90
         }
@@ -513,17 +610,20 @@ public class PlayerControler : MonoBehaviour {
         
         float HillToSpeedCurve = HillToSpeed.Evaluate(GroundVelocity.magnitude / MaximumSpeed);
 
-        if (transform.forward.y > 0.2f)
+        Debug.Log("Angle = " + Vector3.Angle(_GroundNormal, Vector3.up));
+        if (_MaxGroundStandingAngle < Vector3.Angle(_GroundNormal, Vector3.up))
         {
-            float Z = Mathf.Clamp(LocalGroundVelocity.z - (HillToSpeedCurve * Time.fixedDeltaTime), 0, Mathf.Infinity);
-            LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
+            if (transform.forward.y > 0.6f)
+            {
+                float Z = Mathf.Clamp(LocalGroundVelocity.z - (HillToSpeedCurve * Time.fixedDeltaTime), 0, Mathf.Infinity);
+                LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
+            }
+            else if (transform.forward.y < -0.6f)
+            {
+                float Z = LocalGroundVelocity.z + (HillToSpeedCurve * Time.fixedDeltaTime);
+                LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
+            }
         }
-        else if (transform.forward.y < -0.2f)
-        {
-            float Z = LocalGroundVelocity.z + (HillToSpeedCurve * Time.fixedDeltaTime);
-            LocalGroundVelocity = new Vector3(LocalGroundVelocity.x, LocalGroundVelocity.y, Z);
-        }
-        
 
 
 
@@ -531,7 +631,7 @@ public class PlayerControler : MonoBehaviour {
 
 
 
-        if (_Grounded)
+        if (_Grounded && Velocity.magnitude > 10)
         {
             if (Physics.Raycast(NextPoint, -transform.up, out _Hit, Mathf.Lerp(GroundRaycastLengthMin, GroundRaycastLengthMax, GroundVelocity.magnitude / MaximumSpeed), _Ground))
             {
@@ -542,7 +642,7 @@ public class PlayerControler : MonoBehaviour {
         
     }
 
-    void Orientation(RaycastHit _Hit)
+    void Orientation(RaycastHit _Hit, float _SpeedAdjust)
     {
         if (Vector3.Angle(Vector3.up, _GroundNormal) > _MaxGroundStandingAngle)
         {
@@ -556,14 +656,14 @@ public class PlayerControler : MonoBehaviour {
                     Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
                     Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
 
-                    Rotate(Q2, 0.75f);
+                    Rotate(Quaternion.Lerp(Q1, Q2, Velocity.magnitude / _FallOffSpeed), _SpeedAdjust);
                     _Grounded = true;
                 }
                 else
                 {
                     Vector3 F = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
                     Quaternion Q = Quaternion.LookRotation(F, Vector3.up);
-                    Rotate(Q, 0.75f);
+                    Rotate(Q, _SpeedAdjust);
 
                 }
 
@@ -571,7 +671,7 @@ public class PlayerControler : MonoBehaviour {
             }
             else
             {
-                if (Velocity.magnitude > _FallOffSpeed)
+                if (Velocity.magnitude > _WallSlideSpeed)
                 {
                     Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
                     Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
@@ -579,7 +679,7 @@ public class PlayerControler : MonoBehaviour {
                     Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
                     Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
 
-                    Rotate(Q2, 0.75f);
+                    Rotate(Quaternion.Lerp(Q1, Q2, Velocity.magnitude/_FallOffSpeed), _SpeedAdjust);
                     _Grounded = true;
                 }
                 else
@@ -596,7 +696,7 @@ public class PlayerControler : MonoBehaviour {
 
 
                         Quaternion Q2 = Quaternion.LookRotation(F2, Vector3.up);
-                        Rotate(Q2, 0.75f);
+                        Rotate(Q2, _SpeedAdjust);
                         _Grounded = true;
                         return;
                     }
@@ -608,7 +708,7 @@ public class PlayerControler : MonoBehaviour {
                         Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
                         Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
 
-                        Rotate(Q2, 0.75f);
+                        Rotate(Quaternion.Lerp(Q1, Q2, Velocity.magnitude / _FallOffSpeed), _SpeedAdjust);
                         _Grounded = true;
                     }
 
@@ -620,9 +720,13 @@ public class PlayerControler : MonoBehaviour {
         }
         else
         {
+            Vector3 F1 = Vector3.Cross(Vector3.up, -Vector3.Cross(Vector3.up, transform.forward));
             Vector3 F2 = Vector3.Cross(_GroundNormal, -Vector3.Cross(_GroundNormal, transform.forward));
+
+            Quaternion Q1 = Quaternion.LookRotation(F1, Vector3.up);
             Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
-            Rotate(Q2, 0.75f);
+
+            Rotate(Quaternion.Lerp(Q1, Q2, Velocity.magnitude / _FallOffSpeed), 1f);
         }
     }
 
@@ -637,13 +741,21 @@ public class PlayerControler : MonoBehaviour {
             NormalPhysics();
             return;
         }
-        Velocity = (_HomingTarget.transform.position - transform.position).normalized * Mathf.Clamp(AirVelocity.magnitude, MaximumSpeed / 2, MaximumSpeed);
+        if (LastTarget.GetComponent<RailTarget>() == null)
+        {
+            Velocity = (_HomingTarget.transform.position - transform.position).normalized * Mathf.Clamp(AirVelocity.magnitude, MaximumSpeed / 2, MaximumSpeed);
+        }
+        else
+        {
+            Velocity = (RailPoint - transform.position).normalized * Mathf.Clamp(AirVelocity.magnitude, MaximumSpeed / 2, MaximumSpeed);
+        }
     }
 
     float RailSpeed = 0;
 
     public Rail _Rail;
 
+    Vector3 RailPoint = Vector3.zero;
 
     void RailGrindingPhysics()
     {
@@ -664,11 +776,11 @@ public class PlayerControler : MonoBehaviour {
 
         if (Velocity.y < -0.1f)
         {
-            Velocity = Velocity.normalized * (Mathf.Clamp(Velocity.magnitude + 0.1f, 0.5f, MaximumSpeed));
+            Velocity = Velocity.normalized * (Mathf.Clamp(Velocity.magnitude + 0.1f, 5f, MaximumSpeed));
         }
         else if (Velocity.y > 0.1f)
         {
-            Velocity = Velocity.normalized * (Mathf.Clamp(Velocity.magnitude - 0.1f, 0.5f, MaximumSpeed));
+            Velocity = Velocity.normalized * (Mathf.Clamp(Velocity.magnitude - 0.1f, 5f, MaximumSpeed));
         }
 
         if (Vector3.Angle(Velocity, Forward) > 90)
@@ -729,7 +841,7 @@ public class PlayerControler : MonoBehaviour {
             _GroundNormal = _Hit.normal;
             _Grounded = true;
 
-            Orientation(_Hit);
+            Orientation(_Hit, 1f);
             if (_PlayerState != PlayerState.Ball)
             {
                 return;
@@ -895,7 +1007,7 @@ public class PlayerControler : MonoBehaviour {
         Vector3 LV = LocalVelocity;
 
         //RB.MoveRotation(Quaternion.Lerp(transform.rotation, Rotation, 20 * Time.fixedDeltaTime));
-        transform.rotation = Quaternion.Lerp(transform.rotation, Rotation, 20 * Time.fixedDeltaTime);
+        transform.rotation = Quaternion.Lerp(transform.rotation, Rotation, 50 * Time.fixedDeltaTime);
         
         LocalVelocity = Vector3.Lerp(LocalVelocity, LV, PreserveVAmount);
     }
@@ -934,7 +1046,15 @@ public class PlayerControler : MonoBehaviour {
             Debug.Log("Forward Colission Detected");
             WallHit(_Hit);
         }
-        else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.right, out _Hit, 0.3f, _Ground))
+        else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.up, out _Hit, 0.3f, _Ground))
+        {
+            //LocalVelocity.y = 0;
+            Velocity = transform.TransformDirection(LocalVelocity);
+            WallHit(_Hit);
+        }
+
+        /*
+         else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.right, out _Hit, 0.3f, _Ground))
         {
             //LocalVelocity.z = 0;
             Velocity = transform.TransformDirection(LocalVelocity);
@@ -948,14 +1068,7 @@ public class PlayerControler : MonoBehaviour {
             Debug.Log("Forward Colission Detected");
             WallHit(_Hit);
         }
-        else if (Physics.Raycast(transform.position + transform.up * 0.5f, transform.up, out _Hit, 0.3f, _Ground))
-        {
-            //LocalVelocity.y = 0;
-            Velocity = transform.TransformDirection(LocalVelocity);
-            WallHit(_Hit);
-        }
-
-        
+        */
     }
 
     void WallHit(RaycastHit _Hit)
@@ -1013,6 +1126,34 @@ public class PlayerControler : MonoBehaviour {
             Quaternion Q2 = Quaternion.LookRotation(F2, _GroundNormal);
             Rotate(Q2, 0.75f);
         }
+    }
+
+
+    public GameObject PhysicsRings;
+    public void OnHit()
+    {
+        if (GameManagementScript._GameManagement.LM.Ring > 0)
+        {
+            for (int RingNum = 0; RingNum < GameManagementScript._GameManagement.LM.Ring; RingNum++)
+            {
+                GameObject PRing = Instantiate<GameObject>(PhysicsRings);
+                Rigidbody PRRB = PRing.GetComponent<Rigidbody>();
+
+                PRing.transform.position = transform.position + (transform.rotation * new Vector3(Random.Range(-1.5f, 1.5f), Random.Range(0,1.5f), Random.Range(-1.5f, 1.5f)));
+                PRRB.velocity = (PRing.transform.position - transform.position).normalized * Random.Range(1f, 3f);
+            }
+
+            GameManagementScript._GameManagement.LM.Ring = 0;
+        }
+        else
+        {
+            OnDeath();
+        }
+    }
+
+    public void OnDeath()
+    {
+        transform.position = new Vector3(0, 1, 10);
     }
 
 }
