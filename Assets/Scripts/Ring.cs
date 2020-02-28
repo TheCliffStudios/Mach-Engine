@@ -7,7 +7,8 @@ public class Ring : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
+        GetComponent<Interactable>().OnNearEnter = OnTrigger;
     }
 
     public int Value = 1;
@@ -18,7 +19,7 @@ public class Ring : MonoBehaviour
         
     }
 
-    public void OnTrigger()
+    public void OnTrigger(GameObject _Player)
     {
         GameManagementScript._GameManagement.LM.Ring += Value;
         Destroy(gameObject);

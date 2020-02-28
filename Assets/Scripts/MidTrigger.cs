@@ -4,15 +4,32 @@ using UnityEngine;
 
 public class MidTrigger : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public GameObject _Player;
+
+    private void OnTriggerEnter(Collider other)
     {
-        
+        Interactable Inter = other.gameObject.GetComponent<Interactable>();
+        if (Inter != null)
+        {
+            Inter.OnMidEnter(_Player);
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnTriggerStay(Collider other)
     {
-        
+        Interactable Inter = other.gameObject.GetComponent<Interactable>();
+        if (Inter != null)
+        {
+            Inter.OnMidStay(_Player);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        Interactable Inter = other.gameObject.GetComponent<Interactable>();
+        if (Inter != null)
+        {
+            Inter.OnMidExit(_Player);
+        }
     }
 }

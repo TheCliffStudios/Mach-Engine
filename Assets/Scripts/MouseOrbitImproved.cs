@@ -41,13 +41,13 @@ public class MouseOrbitImproved : MonoBehaviour {
     }
 
     float Timer = 0;
- 
+    float DistanceAim = 7.5f;
     void LateUpdate () 
     {
         if (target) 
         {
 
-
+            distance = Mathf.Lerp(distance, DistanceAim, Time.deltaTime);
 
             x += (Input.GetAxis("Mouse X") + InputManager.RightStickX) * xSpeed * distance * 0.02f;
             y += (Input.GetAxis("Mouse Y") + InputManager.RightStickY) * ySpeed * 0.02f;

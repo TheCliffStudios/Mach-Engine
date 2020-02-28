@@ -10,37 +10,28 @@ public class FarTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("FarTriggerEnter");
-        Target _T = other.gameObject.GetComponent<Target>();
-
-        if (_T != null)
+        Interactable Inter = other.gameObject.GetComponent<Interactable>();
+        if (Inter != null)
         {
-            _T.OnTrigger(_Player);
+            Inter.OnFarEnter(_Player);
         }
+    }
 
-        RailTarget _RT = other.gameObject.GetComponent<RailTarget>();
-
-        if (_RT != null)
+    private void OnTriggerStay(Collider other)
+    {
+        Interactable Inter = other.gameObject.GetComponent<Interactable>();
+        if (Inter != null)
         {
-            _RT.OnTrigger(_Player);
+            Inter.OnFarStay(_Player);
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        Debug.Log("FarTriggerExit");
-        Target _T = other.gameObject.GetComponent<Target>();
-
-        if (_T != null)
+        Interactable Inter = other.gameObject.GetComponent<Interactable>();
+        if (Inter != null)
         {
-            _T.OnExit(_Player);
-        }
-
-        RailTarget _RT = other.gameObject.GetComponent<RailTarget>();
-
-        if (_RT != null)
-        {
-            _RT.OnExit(_Player);
+            Inter.OnFarExit(_Player);
         }
     }
 }

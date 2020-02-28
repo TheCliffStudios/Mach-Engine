@@ -15,6 +15,7 @@ public class BasicEnemy : MonoBehaviour
         _DM = gameObject.AddComponent<DamageObject>();
         _DM._OnDamage = OnHit;
         _DM._OnDeath = OnDeath;
+        GetComponent<Interactable>().OnNearEnter = OnTrigger;
     }
 
     public void OnDeath()
@@ -29,7 +30,7 @@ public class BasicEnemy : MonoBehaviour
         {
             _Player.GetComponent<PlayerControler>().SAnimation.Event(SonicAnimationManager.SAnimationEvent.AttackHit, PlayerControler.PlayerState.Homing);
         }
-        if (_Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Homing || ((_Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Ball || _Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Normal) && !_Player.GetComponent<PlayerControler>()._Grounded))
+        if (_Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Homing || ((_Player.GetComponent<PlayerControler>()._Ball || _Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Normal) && !_Player.GetComponent<PlayerControler>()._Grounded))
         {
             if (InputManager.IsPressed("Jump"))
             {

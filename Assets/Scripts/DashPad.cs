@@ -9,7 +9,8 @@ public class DashPad : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
+        GetComponent<Interactable>().OnNearEnter = OnTrigger;
     }
 
     public LayerMask PlayerLayer;

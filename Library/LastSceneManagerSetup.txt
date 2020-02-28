@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/Green Hill Zone.unity
+- path: Assets/Scenes/OpenLevel.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0

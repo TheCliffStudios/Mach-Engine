@@ -7,7 +7,8 @@ public class Spring : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
+        GetComponent<Interactable>().OnNearEnter = OnTrigger;
     }
 
     private GameObject _Player;

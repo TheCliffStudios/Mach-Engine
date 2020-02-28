@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5572256478294342932
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5572256478294342934}
+  - component: {fileID: 5572256478294342933}
+  m_Layer: 0
+  m_Name: Controls
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5572256478294342934
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5572256478294342932}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 80.55094, y: -1.852123, z: 25.451492}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5572256478294342933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5572256478294342932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eadde9ce0c7e88c4f93f7ba66ee14fab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _IsEnabled: 1
+  _IsXboxControllerEnabled: 1
+  _ViewActivator: 2
+  _ViewSensativity: 1
+  DefaultActionAliases:
+  - Name: Jump
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 32
+    SupportID: -1
+  - Name: Jump
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 178
+    SupportID: -1
+  - Name: Up
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 119
+    SupportID: -1
+  - Name: Down
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 115
+    SupportID: -1
+  - Name: Right
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 100
+    SupportID: -1
+  - Name: Left
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 97
+    SupportID: -1
+  - Name: GroundPound
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 69
+    SupportID: -1
+  - Name: GroundPound
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 179
+    SupportID: -1
+  - Name: Ball
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 0
+    SupportID: -1
+  - Name: Ball
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 176
+    SupportID: -1
+  - Name: LeftStep
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 184
+    SupportID: -1
+  - Name: RightStep
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 185
+    SupportID: -1
+  - Name: LeftStep
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 113
+    SupportID: -1
+  - Name: RightStep
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 101
+    SupportID: -1
+  - Name: Respawn
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 27
+    SupportID: -1
+  - Name: Drift
+    Description: 
+    IsDoublePress: 0
+    PrimaryID: 177
+    SupportID: -1
+  EditorActionAliasIndex: 15

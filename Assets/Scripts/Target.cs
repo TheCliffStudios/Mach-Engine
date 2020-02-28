@@ -8,6 +8,9 @@ public class Target : MonoBehaviour
     void Start()
     {
 
+        GetComponent<Interactable>().OnFarEnter = OnTrigger;
+
+        GetComponent<Interactable>().OnFarExit = OnExit;
     }
 
     private GameObject _Player;

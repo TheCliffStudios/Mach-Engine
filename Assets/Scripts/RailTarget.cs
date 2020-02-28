@@ -8,6 +8,7 @@ public class RailTarget : MonoBehaviour
     void Start()
     {
 
+        GetComponent<Interactable>().OnFarEnter = OnTrigger;
     }
 
     private GameObject _Player;

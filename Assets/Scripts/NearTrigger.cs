@@ -20,50 +20,28 @@ public class NearTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("NearTriggerEnter");
-        DashPad _DP = other.gameObject.GetComponent<DashPad>();
-
-        if (_DP != null)
+        Interactable Inter = other.gameObject.GetComponent<Interactable>();
+        if (Inter != null)
         {
-            _DP.OnTrigger(_Player);
-        }
-
-        BasicEnemy _BE = other.gameObject.GetComponent<BasicEnemy>();
-
-        if (_BE != null)
-        {
-            _BE.OnTrigger(_Player);
-        }
-
-        Spring _S = other.gameObject.GetComponent<Spring>();
-
-        if (_S != null)
-        {
-            _S.OnTrigger(_Player);
-        }
-
-        Rail _R = other.gameObject.GetComponent<Rail>();
-
-        if (_R != null)
-        {
-            _R.OnTrigger(_Player);
-        }
-
-        Ring _RI = other.gameObject.GetComponent<Ring>();
-
-        if (_RI != null)
-        {
-            _RI.OnTrigger();
+            Inter.OnNearEnter(_Player);
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
-        Debug.Log("NearTriggerStay");
+        Interactable Inter = other.gameObject.GetComponent<Interactable>();
+        if (Inter != null)
+        {
+            Inter.OnNearStay(_Player);
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        Debug.Log("NearTriggerExit");
+        Interactable Inter = other.gameObject.GetComponent<Interactable>();
+        if (Inter != null)
+        {
+            Inter.OnNearExit(_Player);
+        }
     }
 }
