@@ -14,13 +14,30 @@ public class Spring : MonoBehaviour
     private GameObject _Player;
     public float _Power;
 
+    public enum SpringMode
+    {
+        Addative,
+        Override
+    }
+
+    public SpringMode _Settings = SpringMode.Addative;
+
     public void OnTrigger(GameObject Player)
     {
         //Player.GetComponent<PlayerControler>().Velocity = _Power * transform.up;
 
-        Vector3 LocalV = transform.InverseTransformDirection(Player.GetComponent<PlayerControler>().Velocity);
-        LocalV.y = _Power;
-        Player.GetComponent<PlayerControler>().Velocity = transform.TransformDirection(LocalV);
+        if (_Settings == SpringMode.Addative)
+        {
+            Vector3 LocalV = transform.InverseTransformDirection(Player.GetComponent<PlayerControler>().Velocity);
+            LocalV.y = _Power;
+            Player.GetComponent<PlayerControler>().Velocity = transform.TransformDirection(LocalV);
+        } else if(_Settings == SpringMode.Override)
+        {
+            Vector3 LocalV = new Vector3(0, _Power, 0);
+            Player.GetComponent<PlayerControler>().Velocity = transform.TransformDirection(LocalV);
+        }
+
+        
 
         Target _T = GetComponent<Target>();
 

@@ -138,7 +138,19 @@ public class SonicAnimationManager : MonoBehaviour
                     SetSpeed(1);
                     _SonicBody.SetActive(true);
                     _BallBody.SetActive(false);
-                    if (_PC.Velocity.magnitude < 0.1f && _PC._Grounded && !WasBall && _PC._Ball) { Play("StandToSquat"); WaitTime = 30; }
+                    if (_PC.Velocity.magnitude < 0.1f && _PC._Grounded && !WasBall && _PC._Ball)
+                    {
+                        if (Vector3.Angle(Vector3.up, _PC._GroundNormal) > 30)
+                        {
+                            Play("Ball_Loop");
+                        }
+                        else
+                        {
+                            Play("StandToSquat");
+                            WaitTime = 30;
+                        }
+                        
+                    }
                     else
                     {
                         if (_PC._Grounded)

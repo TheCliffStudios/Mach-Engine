@@ -9,6 +9,8 @@ public class RailTarget : MonoBehaviour
     {
 
         GetComponent<Interactable>().OnFarEnter = OnTrigger;
+        GetComponent<Interactable>().OnFarExit = OnExit;
+       
     }
 
     private GameObject _Player;
@@ -22,6 +24,6 @@ public class RailTarget : MonoBehaviour
     public void OnExit(GameObject Player)
     {
         Player.GetComponent<PlayerControler>()._HomingTargets.Remove(gameObject);
-        Player.GetComponent<PlayerControler>()._PlayerState = PlayerControler.PlayerState.Normal;
+        //Player.GetComponent<PlayerControler>()._PlayerState = PlayerControler.PlayerState.Normal;
     }
 }

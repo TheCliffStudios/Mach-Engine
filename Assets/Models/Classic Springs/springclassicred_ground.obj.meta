@@ -3,7 +3,12 @@ guid: b1401b5836292c04ea517ca31b588b03
 ModelImporter:
   serializedVersion: 26
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cmn_obj_c_spring01_dif_HD
+    second: {fileID: 2100000, guid: f667a77556a5ecf48bc9af8b74e8f6bd, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

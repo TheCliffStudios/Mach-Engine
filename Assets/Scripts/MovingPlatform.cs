@@ -22,7 +22,7 @@ public class MovingPlatform : MonoBehaviour
     public float _Speed = 1f;
     [SerializeField]
     public float Position = 0;
-    public Path _Path = new Path();
+    public Patha _Path = new Patha();
     float _MaxLength;
     float Direction = 1;
     GameObject _Player = null;

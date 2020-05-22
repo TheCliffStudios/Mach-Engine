@@ -12,6 +12,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: cmn_metal_ms_dashpanel_dif
+    second: {fileID: 2100000, guid: 79bfb15d57b037948bbd62921800bcbf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: cmn_obj_panelarrow01_dif_HD
     second: {fileID: 2100000, guid: 1c52bb99af88e9148b4c8982d7d58fdd, type: 2}
   materials:

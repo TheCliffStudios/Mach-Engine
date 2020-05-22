@@ -21,7 +21,7 @@ public class MovingPlatformEditor : Editor
 
     private void OnSceneGUI()
     {
-        Path _Path = _MovingPlatform._Path;
+        Patha _Path = _MovingPlatform._Path;
 
         for (int i = 0; i < _Path.Points.Count/3; i++) {
             Handles.color = Color.blue;

@@ -128,7 +128,7 @@ public class Trans
 
 }
 
-public static class Tools
+public static class GenericTools
 {
 
     public struct GroundedRaycastOut
