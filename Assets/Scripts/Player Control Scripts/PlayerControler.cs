@@ -686,12 +686,12 @@ public class PlayerControler : MonoBehaviour {
             if (GroundVelocity.magnitude > 0.1f)
             {
                 Quaternion Q2 = Quaternion.LookRotation(GroundVelocity, _GroundNormal);
-                Rotate(Q2, 0.5f);
+                Rotate(Q2, 0);
             }
             else
             {
                 Quaternion Q2 = Quaternion.LookRotation(transform.forward, _GroundNormal);
-                Rotate(Q2, 0.5f);
+                Rotate(Q2, 0);
             }
             if (InputManager.IsPressed("Ball"))
             {
@@ -1239,16 +1239,22 @@ public class PlayerControler : MonoBehaviour {
         Vector3 LV = LocalVelocity;
         Vector3 NewHeadPos = transform.position + (Rotation * Quaternion.Inverse(transform.rotation)) * (0.5f * transform.up);
 
+        Vector3 LGV = LocalGroundVelocity;
+
+        Vector3 Forward = transform.forward;
+
         if (Physics.Raycast(transform.position + 0.5f*transform.up, NewHeadPos - transform.position + 0.5f * transform.up, (NewHeadPos - transform.position + 0.5f * transform.up).magnitude , _Ground)){
             //Don't rotate if it would cause a clipping issue
         }
         else 
         {
             //RB.MoveRotation(Quaternion.Lerp(transform.rotation, Rotation, 50 * Time.fixedDeltaTime));
-
+            Quaternion LerpedRotation = Quaternion.Lerp(transform.rotation, transform.rotation * Rotation, PreserveVAmount);
             transform.rotation = Quaternion.Lerp(transform.rotation, Rotation, 50 * Time.fixedDeltaTime);
             //RB.MoveRotation(Rotation);
-            //LocalVelocity = Vector3.Lerp(LocalVelocity, LV, PreserveVAmount);
+
+            if (_Grounded) LocalGroundVelocity = Vector3.Lerp(LocalGroundVelocity, LGV, PreserveVAmount);
+            
         }
         
     }

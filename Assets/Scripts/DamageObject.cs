@@ -7,13 +7,13 @@ public class DamageObject : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public delegate void OnDamage();
@@ -28,6 +28,7 @@ public class DamageObject : MonoBehaviour
         L2,
         L3,
         InstaDeath
+
     }
 
     public enum DefenseLevel
@@ -55,5 +56,7 @@ public class DamageObject : MonoBehaviour
             }
         }
     }
+
+    
 
 }
