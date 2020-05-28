@@ -19,6 +19,7 @@ public class Sound {
 	public float pitchVariance = .1f;
 
 	public bool loop = false;
+    public bool playOnAwake = false;
 
 	public AudioMixerGroup mixerGroup;
 

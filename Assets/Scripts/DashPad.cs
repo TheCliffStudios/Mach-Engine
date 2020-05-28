@@ -13,7 +13,7 @@ public class DashPad : MonoBehaviour
         GetComponent<Interactable>().OnNearEnter = OnTrigger;
     }
 
-    public LayerMask PlayerLayer;
+    
     public bool AdditiveMode = true;
     public float Speed = 5.0f;
 
@@ -33,7 +33,7 @@ public class DashPad : MonoBehaviour
         }
         else
         {
-            //TODO: Stuff
+            Player.GetComponent<PlayerControler>().Velocity = Speed * transform.forward;
         }
         
     }

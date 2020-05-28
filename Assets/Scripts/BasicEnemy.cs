@@ -30,15 +30,15 @@ public class BasicEnemy : MonoBehaviour
         {
             _Player.GetComponent<PlayerControler>().SAnimation.Event(SonicAnimationManager.SAnimationEvent.AttackHit, PlayerControler.PlayerState.Homing);
         }
-        if (_Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Homing || ((_Player.GetComponent<PlayerControler>()._Ball || _Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Normal) && !_Player.GetComponent<PlayerControler>()._Grounded))
+        if (_Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Homing || ((_Player.GetComponent<PlayerControler>()._Ball || (_Player.GetComponent<PlayerControler>()._PlayerState == PlayerControler.PlayerState.Normal) && !_Player.GetComponent<PlayerControler>()._Grounded)))
         {
             if (InputManager.IsPressed("Jump"))
             {
-                _Player.GetComponent<PlayerControler>().Velocity.y = 5;
+                _Player.GetComponent<PlayerControler>().Velocity.y = 10;
             }
             else
             {
-                _Player.GetComponent<PlayerControler>().Velocity = new Vector3(0, 5, 0);
+                _Player.GetComponent<PlayerControler>().Velocity = new Vector3(0, 10, 0);
             }
         }
 

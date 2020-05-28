@@ -20,20 +20,30 @@ public class AudioManager : MonoBehaviour
 			s.source = gameObject.AddComponent<AudioSource>();
 			s.source.clip = s.clip;
 			s.source.loop = s.loop;
-            s.source.playOnAwake = false;
+            s.source.playOnAwake = s.playOnAwake;
 
 			s.source.outputAudioMixerGroup = mixerGroup;
 		}
 	}
 
-    
+    private void Start()
+    {
+        foreach (Sound s in sounds)
+        {
+            if (s.playOnAwake)
+            {
+                s.source.Play();
+            }
+        }
+    }
+
 
     public void Play(string sound)
 	{
 		Sound s = Array.Find(sounds, item => item.name == sound);
 		if (s == null)
 		{
-			Debug.LogWarning("Sound: " + name + " not found!");
+			Debug.LogWarning("Sound: " + sound + " not found!");
 			return;
 		}
         s.source.volume = s.volume;

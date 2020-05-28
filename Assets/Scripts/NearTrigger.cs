@@ -21,7 +21,7 @@ public class NearTrigger : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Interactable Inter = other.gameObject.GetComponent<Interactable>();
-        if (Inter != null)
+        if (Inter != null && Inter.OnNearEnter != null)
         {
             Inter.OnNearEnter(_Player);
         }
@@ -30,7 +30,7 @@ public class NearTrigger : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
         Interactable Inter = other.gameObject.GetComponent<Interactable>();
-        if (Inter != null)
+        if (Inter != null && Inter.OnNearStay != null)
         {
             Inter.OnNearStay(_Player);
         }
@@ -39,7 +39,7 @@ public class NearTrigger : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         Interactable Inter = other.gameObject.GetComponent<Interactable>();
-        if (Inter != null)
+        if (Inter != null && Inter.OnNearExit != null)
         {
             Inter.OnNearExit(_Player);
         }

@@ -3,7 +3,12 @@ guid: edcd1a4b4c3b2b4449bdad2f6be8a662
 ModelImporter:
   serializedVersion: 26
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sonic_Spin_Ball
+    second: {fileID: 2100000, guid: b2fa6cbbe2ac9624f84076f2b85fedbd, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

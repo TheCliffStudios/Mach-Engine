@@ -14,6 +14,7 @@ public class Target : MonoBehaviour
     }
 
     private GameObject _Player;
+    public Vector3 Offset = Vector3.zero;
 
     public void OnTrigger(GameObject Player)
     {

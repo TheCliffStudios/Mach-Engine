@@ -34,7 +34,7 @@ public class GameManagementScript : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         
     }
-
+    public CameraController _CameraController;
     public GameUIController _GameUIController;
     public GameObject _PlayerObject;
     bool LevelActive = false;

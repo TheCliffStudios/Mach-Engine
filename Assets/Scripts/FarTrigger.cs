@@ -11,7 +11,7 @@ public class FarTrigger : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Interactable Inter = other.gameObject.GetComponent<Interactable>();
-        if (Inter != null)
+        if (Inter != null && Inter.OnFarEnter != null)
         {
             Inter.OnFarEnter(_Player);
         }
@@ -20,7 +20,7 @@ public class FarTrigger : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
         Interactable Inter = other.gameObject.GetComponent<Interactable>();
-        if (Inter != null)
+        if (Inter != null && Inter.OnFarStay != null)
         {
             Inter.OnFarStay(_Player);
         }
@@ -29,7 +29,7 @@ public class FarTrigger : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         Interactable Inter = other.gameObject.GetComponent<Interactable>();
-        if (Inter != null)
+        if (Inter != null && Inter.OnFarExit != null)
         {
             Inter.OnFarExit(_Player);
         }

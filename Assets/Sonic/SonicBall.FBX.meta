@@ -8,7 +8,8 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Sonic Spin Ball
-    second: {fileID: 2100000, guid: 046171aee27a81c43b3b2617c1578851, type: 2}
+    second: {fileID: -7219215648121785761, guid: edcd1a4b4c3b2b4449bdad2f6be8a662,
+      type: 3}
   materials:
     importMaterials: 1
     materialName: 0
